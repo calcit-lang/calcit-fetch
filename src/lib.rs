@@ -1,15 +1,20 @@
 use cirru_edn::Edn;
-use std::path::Path;
 
 #[no_mangle]
-pub fn path_exists(args: Vec<Edn>) -> Result<Edn, String> {
-  if args.len() == 1 {
+pub fn fetch(args: Vec<Edn>) -> Result<Edn, String> {
+  if args.len() == 2 {
     if let Edn::Str(name) = &args[0] {
-      Ok(Edn::Bool(Path::new(&name).exists()))
+      match reqwest::blocking::get(name) {
+        Ok(res) => match res.text() {
+          Ok(s) => Ok(Edn::Str(s.to_string())),
+          Err(e) => Err(format!("failed parsing text: {}", e)),
+        },
+        Err(e) => Err(format!("failed request: {}", e)),
+      }
     } else {
-      Err(format!("path-exists? expected 1 filename, got {:?}", args))
+      Err(format!("fetch expected 1 url, got {:?}", args))
     }
   } else {
-    Err(format!("path-exists? expected 1 arg, got {:?}", args))
+    Err(format!("fetch expected 2 arguments, got {:?}", args))
   }
 }

@@ -7,7 +7,8 @@
 APIs:
 
 ```cirru
-lib.core/path-exists? a
+fetch.core/fetch |http://calcit-lang.org nil $ fn (text)
+  println text
 ```
 
 Install to `~/.config/calcit/modules/`, compile and provide `*.{dylib,so}` file with `./build.sh`.
