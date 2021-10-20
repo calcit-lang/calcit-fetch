@@ -21,7 +21,12 @@
       :defs $ {}
         |run-tests $ quote
           defn run-tests () (println "\"%%%% test for lib") (println calcit-filename calcit-dirname)
-            fetch "\"http://calcit-lang.org" nil $ fn (text) (println "\"loaded" text)
+            fetch "\"http://calcit-lang.org" nil $ fn (info)
+              key-match info
+                  :ok text
+                  println text
+                (:err e) (println "\"Err" e)
+                _ $ println "\"unknown:" info
             println "\"sent request"
         |main! $ quote
           defn main! () $ run-tests
