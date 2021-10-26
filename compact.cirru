@@ -2,7 +2,7 @@
 {} (:package |fetch)
   :configs $ {} (:init-fn |fetch.test/main!) (:reload-fn |fetch.test/reload!)
     :modules $ []
-    :version |0.0.3
+    :version |0.0.1
   :files $ {}
     |fetch.core $ {}
       :ns $ quote
@@ -12,7 +12,7 @@
       :defs $ {}
         |fetch $ quote
           defn fetch (url options cb)
-            &callback-dylib-edn (get-dylib-path "\"/dylibs/libcalcit_std") "\"fetch" url options cb
+            &call-dylib-edn-fn (get-dylib-path "\"/dylibs/libcalcit_http") "\"fetch" url options cb
     |fetch.test $ {}
       :ns $ quote
         ns fetch.test $ :require
@@ -27,6 +27,17 @@
                   println text
                 (:err e) (println "\"Err" e)
                 _ $ println "\"unknown:" info
+            ; fetch "\"http://localhost:4000/demo"
+              {} (:method :POST)
+                :headers $ {} (:a |b)
+                :queries $ [] ([] :a |b) ([] :c |d)
+                :body "|Some body"
+              fn (info)
+                key-match info
+                    :ok text
+                    println text
+                  (:err e) (println "\"Err" e)
+                  _ $ println "\"unknown:" info
             println "\"sent request"
         |main! $ quote
           defn main! () $ run-tests
