@@ -33,8 +33,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
-name = "calcit_std"
-version = "0.0.3"
+name = "calcit_http"
+version = "0.0.1"
 dependencies = [
  "cirru_edn",
  "cirru_parser",
