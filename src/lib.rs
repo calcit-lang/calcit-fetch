@@ -21,9 +21,15 @@ struct RequestSkeleton {
 }
 
 #[no_mangle]
+pub fn abi_version() -> String {
+  String::from("0.0.1")
+}
+
+#[no_mangle]
 pub fn fetch(
   args: Vec<Edn>,
   handler: Arc<dyn Fn(Vec<Edn>) -> Result<Edn, String> + Send + Sync + 'static>,
+  finish: Box<dyn FnOnce() + Send + Sync + 'static>,
 ) -> Result<Edn, String> {
   if args.len() == 2 {
     if let Edn::Str(url_raw) = &args[0] {
@@ -46,7 +52,7 @@ pub fn fetch(
           .headers(options.headers)
           .query(&options.query);
 
-        match b.send() {
+        let ret = match b.send() {
           Ok(res) => match res.text() {
             Ok(s) => handler(vec![wrap_ok(Edn::Str(s.to_string()))]),
             Err(e) => handler(vec![wrap_err(Edn::Str(format!(
@@ -55,7 +61,9 @@ pub fn fetch(
             )))]),
           },
           Err(e) => return Err(format!("fetch failed: {}", e)),
-        }
+        };
+        finish();
+        ret
       });
 
       Ok(Edn::Nil)
