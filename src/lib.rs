@@ -7,22 +7,22 @@ use std::sync::Arc;
 use std::thread::spawn;
 
 pub fn wrap_ok(x: Edn) -> Edn {
-  Edn::List(vec![Edn::Keyword("ok".to_owned()), x])
+  Edn::List(vec![Edn::kwd("ok"), x])
 }
 pub fn wrap_err(x: Edn) -> Edn {
-  Edn::List(vec![Edn::Keyword("err".to_owned()), x])
+  Edn::List(vec![Edn::kwd("err"), x])
 }
 
 struct RequestSkeleton {
   method: Method,
   headers: HeaderMap,
   body: String,
-  query: Vec<(String, String)>,
+  query: Vec<(Box<str>, Box<str>)>,
 }
 
 #[no_mangle]
 pub fn abi_version() -> String {
-  String::from("0.0.1")
+  String::from("0.0.5")
 }
 
 #[no_mangle]
@@ -39,11 +39,11 @@ pub fn fetch(
         let client = reqwest::blocking::Client::new();
         let options = parse_request_options(&a1)?;
         let builder = match options.method {
-          Method::GET => client.get(url),
-          Method::POST => client.post(url),
-          Method::PUT => client.put(url),
-          Method::PATCH => client.patch(url),
-          Method::DELETE => client.delete(url),
+          Method::GET => client.get(&*url),
+          Method::POST => client.post(&*url),
+          Method::PUT => client.put(&*url),
+          Method::PATCH => client.patch(&*url),
+          Method::DELETE => client.delete(&*url),
           a => return Err(format!("unexpected method: {}", a)),
         };
 
@@ -54,8 +54,8 @@ pub fn fetch(
 
         let ret = match b.send() {
           Ok(res) => match res.text() {
-            Ok(s) => handler(vec![wrap_ok(Edn::Str(s.to_string()))]),
-            Err(e) => handler(vec![wrap_err(Edn::Str(format!(
+            Ok(s) => handler(vec![wrap_ok(Edn::Str(s.to_string().into_boxed_str()))]),
+            Err(e) => handler(vec![wrap_err(Edn::str(format!(
               "failed to turn body into text: {}",
               e
             )))]),
@@ -85,23 +85,29 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
 
   match info {
     Edn::Map(m) => {
-      req.method = match m.get(&Edn::Keyword(String::from("method"))) {
-        Some(Edn::Keyword(k)) => k.parse::<Method>().map_err(|x| x.to_string())?,
+      req.method = match m.get(&Edn::kwd("method")) {
+        Some(Edn::Keyword(k)) => k.to_str().parse::<Method>().map_err(|x| x.to_string())?,
         None => Method::GET,
         Some(a) => return Err(format!("invalid method name: {}", a)),
       };
-      req.body = match m.get(&Edn::Keyword(String::from("body"))) {
-        Some(Edn::Str(s)) => s.to_owned(),
+      req.body = match m.get(&Edn::kwd("body")) {
+        Some(Edn::Str(s)) => (*s).to_string(),
         None => "".to_owned(),
         Some(a) => a.to_string(),
       };
-      match m.get(&Edn::Keyword(String::from("headers"))) {
+      match m.get(&Edn::kwd("headers")) {
         Some(Edn::Map(xs)) => {
           for (k, v) in xs {
             match (k, v) {
-              (Edn::Str(k2), Edn::Str(v2)) | (Edn::Keyword(k2), Edn::Str(v2)) => {
+              (Edn::Str(k2), Edn::Str(v2)) => {
                 req.headers.insert(
                   k2.parse::<HeaderName>().unwrap(),
+                  v2.parse::<HeaderValue>().unwrap(),
+                );
+              }
+              (Edn::Keyword(k2), Edn::Str(v2)) => {
+                req.headers.insert(
+                  k2.to_str().parse::<HeaderName>().unwrap(),
                   v2.parse::<HeaderValue>().unwrap(),
                 );
               }
@@ -115,14 +121,19 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
         Some(a) => return Err(format!("expected list of pairs for queries: {}", a)),
       }
 
-      match m.get(&Edn::Keyword(String::from("query"))) {
+      match m.get(&Edn::kwd("query")) {
         Some(Edn::List(xs)) => {
           for x in xs {
             if let Edn::List(ys) = x {
               if ys.len() == 2 {
                 match (&ys[0], &ys[1]) {
-                  (Edn::Str(k), Edn::Str(v)) | (Edn::Keyword(k), Edn::Str(v)) => {
+                  (Edn::Str(k), Edn::Str(v)) => {
                     req.query.push((k.to_owned(), v.to_owned()));
+                    // quit jump to next call
+                    continue;
+                  }
+                  (Edn::Keyword(k), Edn::Str(v)) => {
+                    req.query.push((k.to_str().to_owned(), v.to_owned()));
                     // quit jump to next call
                     continue;
                   }

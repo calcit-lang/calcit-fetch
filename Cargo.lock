@@ -34,7 +34,7 @@ checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "calcit_http"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "cirru_edn",
  "cirru_parser",
@@ -55,18 +55,20 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cirru_edn"
-version = "0.1.12"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de5753b6d794dd57aa97ee6fe2785dace6d6367e0e6093433f02f1aff95bdaae"
+checksum = "4888ae76433b2504f820e97d63297db438f9d3ba377456f203ebb0747282c613"
 dependencies = [
  "cirru_parser",
+ "hex",
+ "lazy_static",
 ]
 
 [[package]]
 name = "cirru_parser"
-version = "0.1.8"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b2077243ccce07d54a032dfeb09e68c91d17f87645c501b619ab45a2844cca3"
+checksum = "7344fe701ed60135a9caad1269b200a7dc559abd9860ac5a8b29c674ce579a05"
 
 [[package]]
 name = "core-foundation"
@@ -217,6 +219,12 @@ checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hex"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "http"

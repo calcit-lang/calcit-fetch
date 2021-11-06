@@ -2,7 +2,7 @@
 {} (:package |fetch)
   :configs $ {} (:init-fn |fetch.test/main!) (:reload-fn |fetch.test/reload!)
     :modules $ []
-    :version |0.0.2
+    :version |0.0.3
   :files $ {}
     |fetch.core $ {}
       :ns $ quote
