@@ -1,6 +1,6 @@
-## Workflow
+## Calcit Fetch
 
-> Rust libray for Calcit runtime.
+> Fetch client for Calcit
 
 ### Usages
 
