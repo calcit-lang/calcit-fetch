@@ -21,12 +21,11 @@ fetch "\"http://localhost:4000/demo"
       [] :c |d
     :body "|Some body"
   fn (info)
-    key-match info
-        :ok text
+    tag-match info
+      (:ok text)
         println text
       (:err e)
         println "\"Err" e
-      _ $ println "\"unknown:" info
 ```
 
 Install to `~/.config/calcit/modules/`, compile and provide `*.{dylib,so}` file with `./build.sh`.
