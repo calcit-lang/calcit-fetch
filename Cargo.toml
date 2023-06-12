@@ -1,8 +1,8 @@
 [package]
 name = "calcit_http"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["jiyinyiyong <jiyinyiyong@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [lib]
 name = "calcit_http"
@@ -13,6 +13,6 @@ crate-type = ["dylib"] # Creates dynamic lib
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cirru_edn = "0.2.8"
-cirru_parser = "0.1.12"
-reqwest = { version = "0.11", features = ["blocking"] }
+cirru_edn = "0.4.0"
+cirru_parser = "0.1.24"
+reqwest = { version = "0.11.18", features = ["blocking"] }

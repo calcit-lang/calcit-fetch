@@ -1,3 +1,3 @@
 
 cargo build --release
-mkdir -p dylibs/ && ls target/release/ && cp -v target/release/*.* dylibs/
+rm -rfv dylibs && mkdir dylibs/ && ls target/release/ && cp -v target/release/*.* dylibs/
