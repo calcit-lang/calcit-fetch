@@ -34,7 +34,7 @@ checksum = "c4872d67bab6358e59559027aa3b9157c53d9358c51423c17554809a8858e0f8"
 
 [[package]]
 name = "calcit_http"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "cirru_edn",
  "cirru_parser",
@@ -55,9 +55,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "cirru_edn"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37f78b9daa64e28a97fb4879b9d3a3c4c0c50ad8e14698a6a4fb9db9868bfd43"
+checksum = "8a35d38ee59f7409023f9dee361dc98760f33c9ad1f21283e536939d9561ed44"
 dependencies = [
  "cirru_parser",
  "hex",
@@ -66,9 +66,9 @@ dependencies = [
 
 [[package]]
 name = "cirru_parser"
-version = "0.1.24"
+version = "0.1.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c942c2dafb7e7cab267b66e6ccbb0b4ef11a471b83c90a9e072cdd02d2081aa"
+checksum = "1297388204c9d3c72d1cafea80682fd6384e79c66dfe980460886bff7387e684"
 
 [[package]]
 name = "core-foundation"
@@ -570,9 +570,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.11.18"
+version = "0.11.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cde824a14b7c14f85caff81225f411faacc04a2013f41670f41443742b1c1c55"
+checksum = "3e9ad3fe7488d7e34558a2033d45a0c90b72d97b4f80705666fea71472e2e6a1"
 dependencies = [
  "base64",
  "bytes",
@@ -1028,9 +1028,10 @@ checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
 
 [[package]]
 name = "winreg"
-version = "0.10.1"
+version = "0.50.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
+checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
- "winapi",
+ "cfg-if",
+ "windows-sys",
 ]

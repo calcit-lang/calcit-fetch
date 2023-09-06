@@ -7,10 +7,10 @@ use std::sync::Arc;
 use std::thread::spawn;
 
 pub fn wrap_ok(x: Edn) -> Edn {
-  Edn::List(vec![Edn::tag("ok"), x])
+  Edn::Tuple(Box::new(Edn::tag("ok")), vec![x])
 }
 pub fn wrap_err(x: Edn) -> Edn {
-  Edn::List(vec![Edn::tag("err"), x])
+  Edn::Tuple(Box::new(Edn::tag("err")), vec![x])
 }
 
 struct RequestSkeleton {
