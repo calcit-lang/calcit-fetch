@@ -1,6 +1,6 @@
 
 {} (:package |fetch)
-  :configs $ {} (:init-fn |fetch.test/main!) (:reload-fn |fetch.test/reload!) (:version |0.0.5)
+  :configs $ {} (:init-fn |fetch.test/main!) (:reload-fn |fetch.test/reload!) (:version |0.0.8)
     :modules $ []
   :entries $ {}
   :files $ {}

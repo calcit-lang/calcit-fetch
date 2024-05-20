@@ -1,4 +1,4 @@
-use cirru_edn::Edn;
+use cirru_edn::{Edn, EdnTupleView};
 use reqwest::{
   header::{HeaderMap, HeaderName, HeaderValue},
   Method,
@@ -7,10 +7,16 @@ use std::sync::Arc;
 use std::thread::spawn;
 
 pub fn wrap_ok(x: Edn) -> Edn {
-  Edn::Tuple(Box::new(Edn::tag("ok")), vec![x])
+  Edn::Tuple(EdnTupleView {
+    tag: Arc::new(Edn::tag("ok")),
+    extra: vec![x],
+  })
 }
 pub fn wrap_err(x: Edn) -> Edn {
-  Edn::Tuple(Box::new(Edn::tag("err")), vec![x])
+  Edn::Tuple(EdnTupleView {
+    tag: Arc::new(Edn::tag("err")),
+    extra: vec![x],
+  })
 }
 
 struct RequestSkeleton {
@@ -22,7 +28,7 @@ struct RequestSkeleton {
 
 #[no_mangle]
 pub fn abi_version() -> String {
-  String::from("0.0.6")
+  String::from("0.0.9")
 }
 
 #[no_mangle]
@@ -47,11 +53,11 @@ pub fn fetch(
           a => return Err(format!("unexpected method: {}", a)),
         };
 
-        let b = builder.body(options.body).headers(options.headers).query(&options.query);
+        let b = builder.body(options.body).headers(options.headers).query(&*options.query);
 
         let ret = match b.send() {
           Ok(res) => match res.text() {
-            Ok(s) => handler(vec![wrap_ok(Edn::Str(s.to_string().into_boxed_str()))]),
+            Ok(s) => handler(vec![wrap_ok(Edn::Str(s.into()))]),
             Err(e) => handler(vec![wrap_err(Edn::str(format!("failed to turn body into text: {}", e)))]),
           },
           Err(e) => return Err(format!("fetch failed: {}", e)),
@@ -80,7 +86,7 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
   match info {
     Edn::Map(m) => {
       req.method = match m.get(&Edn::tag("method")) {
-        Some(Edn::Tag(k)) => k.to_str().parse::<Method>().map_err(|x| x.to_string())?,
+        Some(Edn::Tag(k)) => k.ref_str().parse::<Method>().map_err(|x| x.to_string())?,
         None => Method::GET,
         Some(a) => return Err(format!("invalid method name: {}", a)),
       };
@@ -91,7 +97,7 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
       };
       match m.get(&Edn::tag("headers")) {
         Some(Edn::Map(xs)) => {
-          for (k, v) in xs {
+          for (k, v) in &xs.0 {
             match (k, v) {
               (Edn::Str(k2), Edn::Str(v2)) => {
                 req
@@ -101,7 +107,7 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
               (Edn::Tag(k2), Edn::Str(v2)) => {
                 req
                   .headers
-                  .insert(k2.to_str().parse::<HeaderName>().unwrap(), v2.parse::<HeaderValue>().unwrap());
+                  .insert(k2.ref_str().parse::<HeaderName>().unwrap(), v2.parse::<HeaderValue>().unwrap());
               }
               _ => return Err(format!("expected strings for headers: {}, {}", k, v)),
             }
@@ -118,14 +124,14 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
           for x in xs {
             if let Edn::List(ys) = x {
               if ys.len() == 2 {
-                match (&ys[0], &ys[1]) {
+                match (&ys.0[0], &ys.0[1]) {
                   (Edn::Str(k), Edn::Str(v)) => {
-                    req.query.push((k.to_owned(), v.to_owned()));
+                    req.query.push((Box::from(&**k), Box::from(&**v)));
                     // quit jump to next call
                     continue;
                   }
                   (Edn::Tag(k), Edn::Str(v)) => {
-                    req.query.push((k.to_str().to_owned(), v.to_owned()));
+                    req.query.push((k.ref_str().into(), Box::from(&**v)));
                     // quit jump to next call
                     continue;
                   }
