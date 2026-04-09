@@ -1,7 +1,7 @@
 use cirru_edn::{Edn, EdnTupleView};
 use reqwest::{
-  header::{HeaderMap, HeaderName, HeaderValue},
   Method,
+  header::{HeaderMap, HeaderName, HeaderValue},
 };
 use std::sync::Arc;
 use std::thread::spawn;
@@ -9,12 +9,14 @@ use std::thread::spawn;
 pub fn wrap_ok(x: Edn) -> Edn {
   Edn::Tuple(EdnTupleView {
     tag: Arc::new(Edn::tag("ok")),
+    enum_tag: None,
     extra: vec![x],
   })
 }
 pub fn wrap_err(x: Edn) -> Edn {
   Edn::Tuple(EdnTupleView {
     tag: Arc::new(Edn::tag("err")),
+    enum_tag: None,
     extra: vec![x],
   })
 }
@@ -26,12 +28,17 @@ struct RequestSkeleton {
   query: Vec<(Box<str>, Box<str>)>,
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub fn abi_version() -> String {
   String::from("0.0.9")
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
+pub fn edn_version() -> String {
+  cirru_edn::version().to_string()
+}
+
+#[unsafe(no_mangle)]
 pub fn fetch(
   args: Vec<Edn>,
   handler: Arc<dyn Fn(Vec<Edn>) -> Result<Edn, String> + Send + Sync + 'static>,
@@ -122,21 +129,21 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
       match m.get(&Edn::tag("query")) {
         Some(Edn::List(xs)) => {
           for x in xs {
-            if let Edn::List(ys) = x {
-              if ys.len() == 2 {
-                match (&ys.0[0], &ys.0[1]) {
-                  (Edn::Str(k), Edn::Str(v)) => {
-                    req.query.push((Box::from(&**k), Box::from(&**v)));
-                    // quit jump to next call
-                    continue;
-                  }
-                  (Edn::Tag(k), Edn::Str(v)) => {
-                    req.query.push((k.ref_str().into(), Box::from(&**v)));
-                    // quit jump to next call
-                    continue;
-                  }
-                  (a, b) => return Err(format!("expected strings, got: {} {}", a, b)),
+            if let Edn::List(ys) = x
+              && ys.len() == 2
+            {
+              match (&ys.0[0], &ys.0[1]) {
+                (Edn::Str(k), Edn::Str(v)) => {
+                  req.query.push((Box::from(&**k), Box::from(&**v)));
+                  // quit jump to next call
+                  continue;
                 }
+                (Edn::Tag(k), Edn::Str(v)) => {
+                  req.query.push((k.ref_str().into(), Box::from(&**v)));
+                  // quit jump to next call
+                  continue;
+                }
+                (a, b) => return Err(format!("expected strings, got: {} {}", a, b)),
               }
             }
             return Err(format!("invliad data for header: {}", x));
