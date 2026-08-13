@@ -1,4 +1,4 @@
-use cirru_edn::{Edn, EdnTupleView};
+use cirru_edn::Edn;
 use reqwest::{
   Method,
   header::{HeaderMap, HeaderName, HeaderValue},
@@ -7,18 +7,10 @@ use std::sync::Arc;
 use std::thread::spawn;
 
 pub fn wrap_ok(x: Edn) -> Edn {
-  Edn::Tuple(EdnTupleView {
-    tag: Arc::new(Edn::tag("ok")),
-    enum_tag: None,
-    extra: vec![x],
-  })
+  Edn::enum_value("ok", vec![x])
 }
 pub fn wrap_err(x: Edn) -> Edn {
-  Edn::Tuple(EdnTupleView {
-    tag: Arc::new(Edn::tag("err")),
-    enum_tag: None,
-    extra: vec![x],
-  })
+  Edn::enum_value("err", vec![x])
 }
 
 struct RequestSkeleton {

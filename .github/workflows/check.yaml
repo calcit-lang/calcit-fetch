@@ -27,6 +27,12 @@ jobs:
 
       - run: cargo clippy -- -D warnings
 
+      - run: cargo test
+
       - run: rm -rfv dylibs/* && mkdir -p dylibs/ && ls target/release/ && cp -v target/release/*.* dylibs/
 
-      - run: cr
+      - run: cr calcit.cirru --check-only
+      - run: cr calcit.cirru --warn-dyn-method --check-only
+      - run: cr calcit.cirru analyze check-types --summary-only --format json
+      - run: cr calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
+      - run: cr calcit.cirru analyze deprecated --summary-only --format json
