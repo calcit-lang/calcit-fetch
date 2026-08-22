@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: calcit-lang/setup-cr@0.0.9
+      - uses: calcit-lang/setup-calcit@v1
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -31,8 +31,8 @@ jobs:
 
       - run: rm -rfv dylibs/* && mkdir -p dylibs/ && ls target/release/ && cp -v target/release/*.* dylibs/
 
-      - run: cr calcit.cirru --check-only
-      - run: cr calcit.cirru --warn-dyn-method --check-only
-      - run: cr calcit.cirru analyze check-types --summary-only --format json
-      - run: cr calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
-      - run: cr calcit.cirru analyze deprecated --summary-only --format json
+      - run: calcit calcit.cirru --check-only
+      - run: calcit calcit.cirru --warn-dyn-method --check-only
+      - run: calcit calcit.cirru analyze check-types --summary-only --format json
+      - run: calcit calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
+      - run: calcit calcit.cirru analyze deprecated --summary-only --format json
