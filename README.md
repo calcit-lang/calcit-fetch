@@ -44,7 +44,7 @@ Supported option keys:
 Install to `~/.config/calcit/modules/`, compile and provide `*.{dylib,so}` file with `./build.sh`.
 
 The project uses the canonical `calcit.cirru` snapshot and keeps the Calcit/runtime
-version in `deps.cirru`. Validate the snapshot with `cr calcit.cirru --check-only`.
+version in `deps.cirru`. Validate the snapshot with `calcit calcit.cirru --check-only`.
 
 ### Workflow
 
