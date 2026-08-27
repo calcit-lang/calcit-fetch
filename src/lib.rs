@@ -4,10 +4,10 @@ use reqwest::{
   header::{HeaderMap, HeaderName, HeaderValue},
 };
 use std::panic::{AssertUnwindSafe, catch_unwind};
-use std::slice;
 use std::sync::Arc;
 use std::thread::{sleep, spawn};
 use std::time::Duration;
+use std::{ptr, slice};
 
 const ASYNC_PROTOCOL_VERSION: u32 = 1;
 const ASYNC_STATUS_OK: i32 = 0;
@@ -45,6 +45,38 @@ pub struct CalcitFfiAsyncHostV1 {
   enqueue: Option<AsyncHostEnqueue>,
   configure_task: Option<AsyncHostConfigure>,
   open_response: Option<AsyncHostOpenResponse>,
+}
+
+unsafe fn read_abi_header<T>(value: *const T) -> Result<(u32, u32), i32> {
+  if value.is_null() {
+    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
+  }
+  let bytes = value.cast::<u8>();
+  // SAFETY: every versioned descriptor begins with two readable u32 fields.
+  let protocol_version = unsafe { ptr::read_unaligned(bytes.cast::<u32>()) };
+  // SAFETY: the second header field begins four bytes after the first.
+  let struct_size = unsafe { ptr::read_unaligned(bytes.add(std::mem::size_of::<u32>()).cast::<u32>()) };
+  Ok((protocol_version, struct_size))
+}
+
+unsafe fn copy_task_descriptor(value: *const CalcitFfiAsyncTaskV1) -> Result<CalcitFfiAsyncTaskV1, i32> {
+  // SAFETY: forwarded from the versioned descriptor contract.
+  let (version, size) = unsafe { read_abi_header(value) }?;
+  if version != ASYNC_PROTOCOL_VERSION || size < std::mem::size_of::<CalcitFfiAsyncTaskV1>() as u32 {
+    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
+  }
+  // SAFETY: the validated size covers every v1 field.
+  Ok(unsafe { ptr::read_unaligned(value) })
+}
+
+unsafe fn copy_host_descriptor(value: *const CalcitFfiAsyncHostV1) -> Result<CalcitFfiAsyncHostV1, i32> {
+  // SAFETY: forwarded from the versioned descriptor contract.
+  let (version, size) = unsafe { read_abi_header(value) }?;
+  if version != ASYNC_PROTOCOL_VERSION || size < std::mem::size_of::<CalcitFfiAsyncHostV1>() as u32 {
+    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
+  }
+  // SAFETY: the validated size covers every v1 field.
+  Ok(unsafe { ptr::read_unaligned(value) })
 }
 
 pub fn wrap_ok(x: Edn) -> Edn {
@@ -168,20 +200,14 @@ unsafe fn start_fetch_async_v1(
   task: *const CalcitFfiAsyncTaskV1,
   host: *const CalcitFfiAsyncHostV1,
 ) -> i32 {
-  if task.is_null() || host.is_null() {
-    return ASYNC_STATUS_INVALID_PAYLOAD;
-  }
-  // SAFETY: the host provides readable call-scoped descriptors.
-  let task = unsafe { *task };
-  // SAFETY: the host provides readable call-scoped descriptors.
-  let host = unsafe { *host };
-  if task.protocol_version != ASYNC_PROTOCOL_VERSION
-    || host.protocol_version != ASYNC_PROTOCOL_VERSION
-    || task.struct_size < std::mem::size_of::<CalcitFfiAsyncTaskV1>() as u32
-    || host.struct_size < std::mem::size_of::<CalcitFfiAsyncHostV1>() as u32
-  {
-    return ASYNC_STATUS_INVALID_PAYLOAD;
-  }
+  let task = match unsafe { copy_task_descriptor(task) } {
+    Ok(task) => task,
+    Err(status) => return status,
+  };
+  let host = match unsafe { copy_host_descriptor(host) } {
+    Ok(host) => host,
+    Err(status) => return status,
+  };
   let args = match unsafe { decode_async_request(request_ptr, request_len) } {
     Ok(args) => args,
     Err(_) => return ASYNC_STATUS_INVALID_PAYLOAD,
@@ -425,6 +451,13 @@ mod tests {
     assert_eq!(calcit_ffi_async_version(), 1);
     assert_eq!(std::mem::size_of::<CalcitFfiAsyncTaskV1>(), 24);
     assert_eq!(std::mem::size_of::<CalcitFfiAsyncHostV1>(), 40);
+
+    let mut short_task = test_task();
+    short_task.struct_size = 8;
+    assert!(matches!(
+      unsafe { copy_task_descriptor(&short_task) },
+      Err(ASYNC_STATUS_INVALID_PAYLOAD)
+    ));
   }
 
   #[test]
