@@ -94,16 +94,6 @@ struct RequestSkeleton {
 }
 
 #[unsafe(no_mangle)]
-pub fn abi_version() -> String {
-  String::from("0.0.9")
-}
-
-#[unsafe(no_mangle)]
-pub fn edn_version() -> String {
-  cirru_edn::version().to_string()
-}
-
-#[unsafe(no_mangle)]
 pub extern "C" fn calcit_ffi_async_version() -> u32 {
   ASYNC_PROTOCOL_VERSION
 }
@@ -258,32 +248,6 @@ pub unsafe extern "C" fn fetch_calcit_ffi_async_v1(
     unsafe { start_fetch_async_v1(request_ptr, request_len, task, host) }
   }))
   .unwrap_or(ASYNC_STATUS_INTERNAL_ERROR)
-}
-
-#[unsafe(no_mangle)]
-pub fn fetch(
-  args: Vec<Edn>,
-  handler: Arc<dyn Fn(Vec<Edn>) -> Result<Edn, String> + Send + Sync + 'static>,
-  finish: Box<dyn FnOnce() + Send + Sync + 'static>,
-) -> Result<Edn, String> {
-  if args.len() == 2 {
-    if let Edn::Str(url_raw) = &args[0] {
-      let options = args[1].to_owned();
-      let url = url_raw.to_owned();
-      spawn(move || {
-        let result = perform_fetch(url, options);
-        let ret = handler(vec![result]);
-        finish();
-        ret
-      });
-
-      Ok(Edn::Nil)
-    } else {
-      Err(format!("fetch expected 1 url, got {:?}", args))
-    }
-  } else {
-    Err(format!("fetch expected 2 arguments, got {:?}", args))
-  }
 }
 
 fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {

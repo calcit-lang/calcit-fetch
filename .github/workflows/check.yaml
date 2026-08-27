@@ -23,13 +23,22 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      - run: cargo fmt --check
+
       - run: cargo build --release
 
       - run: cargo clippy -- -D warnings
 
       - run: cargo test
 
-      - run: rm -rfv dylibs/* && mkdir -p dylibs/ && ls target/release/ && cp -v target/release/*.* dylibs/
+      - name: Verify C-safe exports only
+        run: |
+          exports="$(nm -D --defined-only target/release/libcalcit_http.so)"
+          grep -q ' calcit_ffi_async_version$' <<<"$exports"
+          grep -q ' fetch_calcit_ffi_async_v1$' <<<"$exports"
+          ! grep -Eq ' (abi_version|edn_version|fetch)$' <<<"$exports"
+
+      - run: rm -rfv dylibs/* && mkdir -p dylibs/ && cp -v target/release/libcalcit_http.so dylibs/
 
       - run: calcit calcit.cirru --check-only
       - run: calcit calcit.cirru --warn-dyn-method --check-only
