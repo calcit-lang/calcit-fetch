@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 pub use calcit_native_ffi::{CalcitFfiAsyncHostV1, CalcitFfiAsyncTaskV1};
 
 pub const ASYNC_STATUS_OK: i32 = calcit_native_ffi::status::OK;
@@ -35,12 +33,5 @@ pub fn encode_failure(message: impl Into<String>) -> Vec<u8> {
 }
 
 pub fn enqueue_with_backpressure(host: CalcitFfiAsyncHostV1, task: CalcitFfiAsyncTaskV1, kind: u32, payload: &[u8]) -> i32 {
-  calcit_native_ffi::enqueue_with_backpressure(
-    host,
-    task,
-    kind,
-    0,
-    payload,
-    calcit_native_ffi::BackpressurePolicy::unbounded(Duration::from_millis(1)),
-  )
+  calcit_native_ffi::enqueue_with_backpressure(host, task, kind, 0, payload, calcit_native_ffi::BackpressurePolicy::default())
 }

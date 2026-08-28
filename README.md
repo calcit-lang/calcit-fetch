@@ -58,6 +58,15 @@ async descriptors, validation, Cirru EDN callback payloads, and backpressure
 transport. HTTP options, request workers, and `Result` payload semantics remain
 owned by this repository.
 
+结果 `emit` 与 terminal 事件在 host queue 持续饱和时最多等待 5 秒，不再无限
+占住 worker。当前网络请求由 blocking `reqwest` 执行且没有 cancel hook；有界
+结果投递不等同于网络请求本身可取消。
+
+Result `emit` and terminal publication wait at most five seconds when the host
+queue remains saturated, rather than retaining the worker indefinitely. The
+network operation currently uses blocking `reqwest` without a cancel hook;
+bounded result delivery does not imply request-execution cancellation.
+
 ### Workflow
 
 https://github.com/calcit-lang/dylib-workflow
