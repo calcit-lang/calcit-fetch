@@ -12,3 +12,6 @@ calcit calcit.cirru --check-only
 
 The canonical snapshot is `calcit.cirru`; do not use or add `compact.cirru`. Use `calcit` rather than the retired `cr` command. For language and migration details, query `calcit docs read`.
 
+The native async ABI descriptors, validation, Cirru EDN payload adapters, and
+backpressure transport come from `calcit_native_ffi`. Keep HTTP request parsing,
+worker behavior, and callback result semantics in this repository.

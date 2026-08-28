@@ -36,9 +36,19 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 name = "calcit_http"
 version = "0.0.16"
 dependencies = [
+ "calcit_native_ffi",
  "cirru_edn",
  "cirru_parser",
  "reqwest",
+]
+
+[[package]]
+name = "calcit_native_ffi"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a985b8b73c1025a00f7e03bfc673c8e44e5671be78af4783b856b8f85464cc66"
+dependencies = [
+ "cirru_edn",
 ]
 
 [[package]]
