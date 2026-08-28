@@ -1,83 +1,16 @@
-use cirru_edn::{Edn, EdnListView};
+mod ffi;
+
+calcit_native_ffi::export_async_abi_v1!();
+
+use cirru_edn::Edn;
+use ffi::*;
 use reqwest::{
   Method,
   header::{HeaderMap, HeaderName, HeaderValue},
 };
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::Arc;
-use std::thread::{sleep, spawn};
-use std::time::Duration;
-use std::{ptr, slice};
-
-const ASYNC_PROTOCOL_VERSION: u32 = 1;
-const ASYNC_STATUS_OK: i32 = 0;
-const ASYNC_STATUS_QUEUE_FULL: i32 = 7;
-const ASYNC_STATUS_INVALID_PAYLOAD: i32 = 8;
-const ASYNC_STATUS_INTERNAL_ERROR: i32 = 9;
-const ASYNC_TASK_ONE_SHOT: u32 = 1;
-const ASYNC_TASK_SERIAL_EVENTS: u32 = 1;
-const ASYNC_EVENT_EMIT: u32 = 1;
-const ASYNC_EVENT_COMPLETE: u32 = 2;
-const ASYNC_EVENT_FAIL: u32 = 3;
-
-type AsyncHostEnqueue = unsafe extern "C" fn(u64, u64, u32, u64, *const u8, usize) -> i32;
-type AsyncTaskCancel = unsafe extern "C" fn(u64, u64, *const u8, usize) -> i32;
-type AsyncResponseResolve = unsafe extern "C" fn(u64, u64, u32, *const u8, usize) -> i32;
-type AsyncHostConfigure = unsafe extern "C" fn(u64, u64, u32, u32, u64, Option<AsyncTaskCancel>) -> i32;
-type AsyncHostOpenResponse = unsafe extern "C" fn(u64, u64, u64, u64, Option<AsyncResponseResolve>, *mut u64) -> i32;
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct CalcitFfiAsyncTaskV1 {
-  protocol_version: u32,
-  struct_size: u32,
-  handle: u64,
-  kind: u32,
-  flags: u32,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-pub struct CalcitFfiAsyncHostV1 {
-  protocol_version: u32,
-  struct_size: u32,
-  context: u64,
-  enqueue: Option<AsyncHostEnqueue>,
-  configure_task: Option<AsyncHostConfigure>,
-  open_response: Option<AsyncHostOpenResponse>,
-}
-
-unsafe fn read_abi_header<T>(value: *const T) -> Result<(u32, u32), i32> {
-  if value.is_null() {
-    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
-  }
-  let bytes = value.cast::<u8>();
-  // SAFETY: every versioned descriptor begins with two readable u32 fields.
-  let protocol_version = unsafe { ptr::read_unaligned(bytes.cast::<u32>()) };
-  // SAFETY: the second header field begins four bytes after the first.
-  let struct_size = unsafe { ptr::read_unaligned(bytes.add(std::mem::size_of::<u32>()).cast::<u32>()) };
-  Ok((protocol_version, struct_size))
-}
-
-unsafe fn copy_task_descriptor(value: *const CalcitFfiAsyncTaskV1) -> Result<CalcitFfiAsyncTaskV1, i32> {
-  // SAFETY: forwarded from the versioned descriptor contract.
-  let (version, size) = unsafe { read_abi_header(value) }?;
-  if version != ASYNC_PROTOCOL_VERSION || size < std::mem::size_of::<CalcitFfiAsyncTaskV1>() as u32 {
-    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
-  }
-  // SAFETY: the validated size covers every v1 field.
-  Ok(unsafe { ptr::read_unaligned(value) })
-}
-
-unsafe fn copy_host_descriptor(value: *const CalcitFfiAsyncHostV1) -> Result<CalcitFfiAsyncHostV1, i32> {
-  // SAFETY: forwarded from the versioned descriptor contract.
-  let (version, size) = unsafe { read_abi_header(value) }?;
-  if version != ASYNC_PROTOCOL_VERSION || size < std::mem::size_of::<CalcitFfiAsyncHostV1>() as u32 {
-    return Err(ASYNC_STATUS_INVALID_PAYLOAD);
-  }
-  // SAFETY: the validated size covers every v1 field.
-  Ok(unsafe { ptr::read_unaligned(value) })
-}
+use std::thread::spawn;
 
 pub fn wrap_ok(x: Edn) -> Edn {
   Edn::enum_value("ok", vec![x])
@@ -93,37 +26,6 @@ struct RequestSkeleton {
   query: Vec<(Box<str>, Box<str>)>,
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn calcit_ffi_async_version() -> u32 {
-  ASYNC_PROTOCOL_VERSION
-}
-
-fn encode_event_args(values: Vec<Edn>) -> Result<Vec<u8>, String> {
-  cirru_edn::format(&Edn::List(EdnListView(values)), true)
-    .map(String::into_bytes)
-    .map_err(|error| format!("failed to encode fetch callback payload: {error}"))
-}
-
-fn encode_failure(message: impl Into<String>) -> Vec<u8> {
-  let message = Edn::str(message.into());
-  cirru_edn::format(&message, true)
-    .unwrap_or_else(|_| "do |failed-to-encode-fetch-error".to_owned())
-    .into_bytes()
-}
-
-fn enqueue_with_backpressure(host: CalcitFfiAsyncHostV1, task: CalcitFfiAsyncTaskV1, kind: u32, payload: &[u8]) -> i32 {
-  let Some(enqueue) = host.enqueue else {
-    return ASYNC_STATUS_INVALID_PAYLOAD;
-  };
-  loop {
-    let status = unsafe { enqueue(host.context, task.handle, kind, 0, payload.as_ptr(), payload.len()) };
-    if status != ASYNC_STATUS_QUEUE_FULL {
-      return status;
-    }
-    sleep(Duration::from_millis(1));
-  }
-}
-
 fn publish_fetch_result(host: CalcitFfiAsyncHostV1, task: CalcitFfiAsyncTaskV1, result: Edn) -> i32 {
   let payload = match encode_event_args(vec![result]) {
     Ok(payload) => payload,
@@ -137,24 +39,6 @@ fn publish_fetch_result(host: CalcitFfiAsyncHostV1, task: CalcitFfiAsyncTaskV1, 
     return status;
   }
   enqueue_with_backpressure(host, task, ASYNC_EVENT_COMPLETE, b"&unit")
-}
-
-unsafe fn decode_async_request(request_ptr: *const u8, request_len: usize) -> Result<Vec<Edn>, String> {
-  if request_ptr.is_null() && request_len != 0 {
-    return Err("fetch async request pointer is null".to_owned());
-  }
-  let request = if request_len == 0 {
-    &[]
-  } else {
-    // SAFETY: the host keeps the request readable for this start call.
-    unsafe { slice::from_raw_parts(request_ptr, request_len) }
-  };
-  let source = std::str::from_utf8(request).map_err(|error| format!("fetch async request is not UTF-8: {error}"))?;
-  let data = cirru_edn::parse(source).map_err(|error| format!("fetch async request is not valid Cirru EDN: {error}"))?;
-  let Edn::List(EdnListView(args)) = data else {
-    return Err("fetch async request must be a Cirru EDN list".to_owned());
-  };
-  Ok(args)
 }
 
 fn perform_fetch(url: Arc<str>, options: Edn) -> Edn {
@@ -344,6 +228,9 @@ fn parse_request_options(info: &Edn) -> Result<RequestSkeleton, String> {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use calcit_native_ffi::{AsyncResponseResolve, AsyncTaskCancel};
+  use cirru_edn::EdnListView;
+  use std::slice;
   use std::sync::{LazyLock, Mutex};
 
   type RecordedEvent = (u32, Vec<u8>);
@@ -391,7 +278,7 @@ mod tests {
 
   fn test_task() -> CalcitFfiAsyncTaskV1 {
     CalcitFfiAsyncTaskV1 {
-      protocol_version: ASYNC_PROTOCOL_VERSION,
+      protocol_version: calcit_native_ffi::ASYNC_PROTOCOL_VERSION,
       struct_size: std::mem::size_of::<CalcitFfiAsyncTaskV1>() as u32,
       handle: 7,
       kind: ASYNC_TASK_ONE_SHOT,
@@ -401,7 +288,7 @@ mod tests {
 
   fn test_host() -> CalcitFfiAsyncHostV1 {
     CalcitFfiAsyncHostV1 {
-      protocol_version: ASYNC_PROTOCOL_VERSION,
+      protocol_version: calcit_native_ffi::ASYNC_PROTOCOL_VERSION,
       struct_size: std::mem::size_of::<CalcitFfiAsyncHostV1>() as u32,
       context: 7,
       enqueue: Some(record_enqueue),

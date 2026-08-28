@@ -46,6 +46,18 @@ Install to `~/.config/calcit/modules/`, compile and provide `*.{dylib,so}` file 
 The project uses the canonical `calcit.cirru` snapshot and keeps the Calcit/runtime
 version in `deps.cirru`. Validate the snapshot with `calcit calcit.cirru --check-only`.
 
+### 共享 FFI 基础层 / Shared FFI foundation
+
+本模块使用 [`calcit_native_ffi`](https://github.com/calcit-lang/calcit-native-ffi)
+维护 async descriptors、校验、Cirru EDN callback payload 和 backpressure
+transport。HTTP options、request worker 与 `Result` payload 仍由本仓库维护。
+
+This module uses
+[`calcit_native_ffi`](https://github.com/calcit-lang/calcit-native-ffi) for
+async descriptors, validation, Cirru EDN callback payloads, and backpressure
+transport. HTTP options, request workers, and `Result` payload semantics remain
+owned by this repository.
+
 ### Workflow
 
 https://github.com/calcit-lang/dylib-workflow
