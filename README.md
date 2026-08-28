@@ -8,7 +8,7 @@ Native requests are executed asynchronously through the fetch dylib. The public 
 
 APIs:
 
-```cirru
+```cirru.no-run
 fetch.core/fetch |http://calcit-lang.org nil $ fn (info)
   tag-match info
     (:ok text)
@@ -19,8 +19,8 @@ fetch.core/fetch |http://calcit-lang.org nil $ fn (info)
 
 Demo of options:
 
-```cirru
-fetch "\"http://localhost:4000/demo"
+```cirru.no-run
+fetch.core/fetch "\"http://localhost:4000/demo"
   {} (:method :POST)
     :headers $ {} (:a |b)
     :query $ [] ([] :a |b)
