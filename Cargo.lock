@@ -34,7 +34,7 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "calcit_http"
-version = "0.0.16"
+version = "0.0.17"
 dependencies = [
  "calcit_native_ffi",
  "cirru_edn",
