@@ -62,10 +62,16 @@ owned by this repository.
 占住 worker。当前网络请求由 blocking `reqwest` 执行且没有 cancel hook；有界
 结果投递不等同于网络请求本身可取消。
 
+Calcit `0.13.60` 或更高版本会把 Snapshot 标识键规范写为 symbol，同时继续
+兼容读取旧 string 键。
+
 Result `emit` and terminal publication wait at most five seconds when the host
 queue remains saturated, rather than retaining the worker indefinitely. The
 network operation currently uses blocking `reqwest` without a cancel hook;
 bounded result delivery does not imply request-execution cancellation.
+
+Calcit `0.13.60` or newer writes canonical symbol keys for Snapshot identifiers
+while continuing to read legacy string keys.
 
 ### Workflow
 
