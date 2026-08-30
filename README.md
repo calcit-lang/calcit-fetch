@@ -77,6 +77,10 @@ while continuing to read legacy string keys.
 
 https://github.com/calcit-lang/dylib-workflow
 
+For Result handling, backpressure, and request-lifecycle guidance, use
+`calcit docs read "Asynchronous native Fetch" --module calcit-fetch` after
+installation.
+
 ### License
 
 MIT
