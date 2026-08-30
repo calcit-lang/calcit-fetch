@@ -15,6 +15,14 @@ jobs:
       - uses: actions/checkout@v5
 
       - uses: calcit-lang/setup-calcit@v1.3.0
+        with:
+          tools: calcit,caps
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - run: caps --ci
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -27,7 +35,7 @@ jobs:
 
       - run: cargo build --release
 
-      - run: cargo clippy -- -D warnings
+      - run: cargo clippy --all-targets -- -D warnings
 
       - run: cargo test
 
@@ -40,7 +48,16 @@ jobs:
 
       - run: rm -rfv dylibs/* && mkdir -p dylibs/ && cp -v target/release/libcalcit_http.so dylibs/
 
-      - run: calcit calcit.cirru --check-only
+      - name: Validate Calcit API, examples, and docs
+        run: |
+          calcit calcit.cirru edit format
+          git diff --exit-code -- calcit.cirru
+          calcit calcit.cirru --check-only
+          calcit calcit.cirru analyze dynamic-methods --max 0
+          calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
+          calcit calcit.cirru docs check-md README.md --entry calcit.cirru --failures-only
+          calcit calcit.cirru docs check-md docs/async-fetch.md --entry calcit.cirru --failures-only
+      - run: bash scripts/check-cancel-ffi.sh
       - run: calcit calcit.cirru --warn-dyn-method --check-only
       - run: calcit calcit.cirru analyze check-types --summary-only --format json
       - run: calcit calcit.cirru analyze weak-types --intent unresolved --summary-only --format json

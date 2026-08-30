@@ -8,23 +8,31 @@
   :files $ {}
     'fetch.core $ %{} 'FileEntry
       :defs $ {}
-        'fetch $ %{} 'CodeEntry (:doc "|Asynchronously sends an HTTP request through the native fetch dylib.\nParams: url (string), options (nil or map), cb (callback receiving (:: :ok string) or (:: :err string)).\nReturns: unit immediately; response is delivered through callback.")
+        'fetch $ %{} 'CodeEntry (:doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel or .cancel-with to interrupt the network request and suppress stale callback delivery.")
           :code $ quote
             defn fetch (url options cb)
-              &call-dylib-edn-fn (get-dylib-path |/dylibs/libcalcit_http) |fetch url options cb
+              ffi:task $ &call-dylib-edn-fn (get-dylib-path |/dylibs/libcalcit_http) |fetch url options cb
           :examples $ []
-            quote $ quote
-              fetch |https://calcit-lang.org nil $ fn (info)
-                tag-match info
+            quote $ fetch |http://127.0.0.1:1/demo
+              {} $ :timeout-ms 50
+              fn (result)
+                match result
                   (:ok text) (println text)
-                  (:err e) (println |Err e)
+                  (:err message) (eprintln message)
+            quote $ let
+                task $ fetch |http://127.0.0.1:1/demo
+                  {} $ :timeout-ms 50
+                  fn (result)
+                    match result
+                      (:ok text) (println text)
+                      (:err message) (eprintln message)
+              task.cancel-with :superseded
           :ffi $ {} (:backend :native) (:symbol |fetch)
           :schema $ :: 'Fn
-            {} (:return 'Unit)
+            {} (:return 'FfiTask)
               :args $ [] 'String 'Dynamic
                 :: 'Fn $ {} (:return 'Unit)
-                  :args $ [] 'Dynamic
-              :features $ #{} :js-ffi
+                  :args $ [] (:: 'Result 'String 'String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns fetch.core $ :require
@@ -55,7 +63,7 @@
                   :query $ [] ([] :a |b) ([] :c |d)
                   :body "|Some body"
                 fn (info)
-                  tag-match info
+                  match info
                     (:ok text) (println text)
                     (:err e) (println |Err e)
               println "|sent request"
