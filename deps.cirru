@@ -1,5 +1,5 @@
 
-{} (:calcit-version |0.13.67)
+{} (:calcit-version |0.13.70)
   :version |0.0.23
   :dependencies $ {}
-  :dev-dependencies $ {} (|calcit-lang/calcit-test |0.0.6)
+  :dev-dependencies $ {} (|calcit-lang/calcit-test |0.0.7)

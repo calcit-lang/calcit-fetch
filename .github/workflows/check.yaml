@@ -62,3 +62,15 @@ jobs:
       - run: calcit calcit.cirru analyze check-types --summary-only --format json
       - run: calcit calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
       - run: calcit calcit.cirru analyze deprecated --summary-only --format json
+      - name: Validate FFI Interface IR lowering
+        run: |
+          calcit calcit.cirru ffi export --json > /tmp/calcit-fetch-ffi-interface-ir.json
+          jq -e '
+            .data.summary == {"definitions":1,"diagnostics":2,"supported":0,"unsupported":1}
+            and (.data.interface.definitions[0].lowering.backend == "native")
+            and (.data.interface.definitions[0].lowering.invoke == "async")
+            and (.data.interface.definitions[0].lowering.kind == "async-request")
+            and (.data.interface.definitions[0].lowering.symbol == "fetch")
+            and (.data.interface.definitions[0].lowering.transport == "async-task-v1")
+            and all(.diagnostics[]; .code == "E_FFI_IR_UNSUPPORTED_TYPE")
+          ' /tmp/calcit-fetch-ffi-interface-ir.json

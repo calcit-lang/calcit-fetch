@@ -70,8 +70,8 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块要求 Calcit `0.13.67` 或更高版本，以提供 typed `FfiTask` 方法和当前
-async lifecycle 语义。
+模块要求 Calcit `0.13.70` 或更高版本，以提供 typed `FfiTask` 方法、当前
+async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
 queue remains saturated, rather than retaining the worker indefinitely. The
@@ -80,8 +80,18 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module requires Calcit `0.13.67` or newer for typed `FfiTask` methods and
-the current async lifecycle semantics.
+The module requires Calcit `0.13.70` or newer for typed `FfiTask` methods, the
+current async lifecycle semantics, and versioned FFI Interface IR.
+
+`fetch.core/fetch` declares the native async lowering contract consumed by
+`calcit ffi export`: `async-request` invocation over `async-task-v1`. Options and
+the callback remain a deliberate handwritten adapter boundary in Interface IR
+v1, so unsupported-type diagnostics are expected and are guarded in CI.
+
+`fetch.core/fetch` 已声明供 `calcit ffi export` 使用的 native async lowering
+合同，即通过 `async-task-v1` 承载 `async-request`。options 与 callback 在
+Interface IR v1 中仍是有意保留的手写 adapter 边界，对应 unsupported-type
+诊断属于预期结果，并由 CI 守门。
 
 ### Workflow
 

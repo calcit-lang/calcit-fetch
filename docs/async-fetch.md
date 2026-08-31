@@ -47,3 +47,16 @@ The request runs as an async `reqwest` future selected against the task's regist
 - Retain and cancel the returned task when the owning view, route, or request generation becomes obsolete.
 - For retries, classify transport failures and make mutation requests idempotent.
 - Do not use `unwrap` on network results; handle both variants with `match` or Result methods.
+
+## Native FFI contract
+
+The raw `fetch` definition publishes complete native async lowering metadata:
+`async-request` invocation uses the `async-task-v1` transport and returns the
+host-managed `FfiTask`. Run `calcit calcit.cirru ffi export --json` to inspect
+the versioned contract.
+
+Interface IR v1 does not yet generate callback parameters or the flexible
+options value. It reports `E_FFI_IR_UNSUPPORTED_TYPE` for those two paths and
+leaves their validation, cancellation, and callback adapter in this module.
+The lowering metadata is complete even while the logical type boundary remains
+explicitly unsupported by bindgen.
