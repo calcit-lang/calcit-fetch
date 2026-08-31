@@ -27,7 +27,7 @@
                       (:ok text) (println text)
                       (:err message) (eprintln message)
               task.cancel-with :superseded
-          :ffi $ {} (:backend :native) (:symbol |fetch)
+          :ffi $ {} (:backend :native) (:invoke :async) (:kind :async-request) (:symbol |fetch) (:transport :async-task-v1)
           :schema $ :: 'Fn
             {} (:return 'FfiTask)
               :args $ [] 'String 'Dynamic
@@ -82,7 +82,6 @@
           :code $ quote
             defmacro get-dylib-ext () $ case-default (&get-os) |.so (:macos |.dylib) (:windows |.dll)
           :examples $ []
-          :ffi $ {} (:backend :native)
           :schema $ :: 'Macro
             {}
               :capabilities $ #{} :platform-read
