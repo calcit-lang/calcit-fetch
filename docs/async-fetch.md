@@ -55,8 +55,9 @@ The raw `fetch` definition publishes complete native async lowering metadata:
 host-managed `FfiTask`. Run `calcit calcit.cirru ffi export --json` to inspect
 the versioned contract.
 
-Interface IR v1 does not yet generate callback parameters or the flexible
-options value. It reports `E_FFI_IR_UNSUPPORTED_TYPE` for those two paths and
-leaves their validation, cancellation, and callback adapter in this module.
-The lowering metadata is complete even while the logical type boundary remains
-explicitly unsupported by bindgen.
+Interface IR v2 does not generate callback parameters, the flexible options
+value, or the host-managed `FfiTask`. It reports deterministic diagnostics at
+the two parameter paths and the result path, and leaves validation,
+cancellation, and callback delivery in this module. The lowering metadata is
+complete even while the logical type boundary remains explicitly unsupported
+by bindgen.
