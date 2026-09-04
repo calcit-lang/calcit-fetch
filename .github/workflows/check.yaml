@@ -72,9 +72,9 @@ jobs:
             and (.data.interface.definitions[0].lowering.kind == "async-request")
             and (.data.interface.definitions[0].lowering.symbol == "fetch")
             and (.data.interface.definitions[0].lowering.transport == "async-task-v1")
-            and ([.diagnostics[] | [.code, .path]] == [
+            and (([.diagnostics[] | [.code, .path]] | sort) == ([
               ["E_FFI_IR_UNSUPPORTED_TYPE", "signature.parameters.1.type"],
               ["E_FFI_IR_UNSUPPORTED_TYPE", "signature.parameters.2.type"],
               ["E_FFI_IR_DECLARATION_MISSING", "signature.result"]
-            ])
+            ] | sort))
           ' /tmp/calcit-fetch-ffi-interface-ir.json
