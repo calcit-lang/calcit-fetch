@@ -62,6 +62,7 @@ jobs:
       - run: calcit calcit.cirru analyze check-types --summary-only --format json
       - run: calcit calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
       - run: calcit calcit.cirru analyze deprecated --summary-only --format json
+      - run: calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
       - name: Validate FFI Interface IR lowering
         run: |
           calcit calcit.cirru ffi export --json > /tmp/calcit-fetch-ffi-interface-ir.json
