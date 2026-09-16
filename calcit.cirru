@@ -3,10 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |fetch
   :entries $ {} $ :default
-    {} (:description |)
-      :init-fn 'fetch.test/main!
-      :mode :native
-      :reload-fn 'fetch.test/reload!
+    {} (:description |) (:init-fn 'fetch.test/main!) (:mode :native) (:reload-fn 'fetch.test/reload!)
       :feature-policy $ {}
       :modules $ []
       :type-slots $ {}
@@ -16,9 +13,7 @@
         %{} 'CodeEntry
           :doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel or .cancel-with to interrupt the network request and suppress stale callback delivery."
           :code $ quote $ defn fetch (url options cb)
-            ffi:task $ &call-dylib-edn-fn
-              get-dylib-path |/dylibs/libcalcit_http
-              , |fetch url options cb
+            ffi:task $ &call-dylib-edn-fn (get-dylib-path |/dylibs/libcalcit_http) |fetch url options cb
           :examples $ []
             quote $ fetch |http://127.0.0.1:1/demo
               {} $ :timeout-ms 50
@@ -46,23 +41,19 @@
             fetch.util :refer $ get-dylib-path
     'fetch.test $ %{} 'FileEntry
       :defs $ {}
-        'main! $ %{} 'CodeEntry
-          :doc "|Runs fetch module demo cases."
+        'main! $ %{} 'CodeEntry (:doc "|Runs fetch module demo cases.")
           :code $ quote $ defn main! () (run-tests)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
-        'reload! $ %{} 'CodeEntry
-          :doc "|Hot reload hook for development."
+        'reload! $ %{} 'CodeEntry (:doc "|Hot reload hook for development.")
           :code $ quote $ defn reload! ()
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
         'run-tests $ %{} 'CodeEntry
           :doc "|Prints module info and demonstrates an async GET request."
-          :code $ quote $ defn run-tests ()
-            println "|%%%% test for lib"
-            println calcit-filename calcit-dirname
+          :code $ quote $ defn run-tests () (println "|%%%% test for lib") (println calcit-filename calcit-dirname)
             ; fetch |http://localhost:4000/demo
               {} (:method :POST)
                 :headers $ {} $ :a |b
