@@ -21,9 +21,8 @@ Demo of options:
 let
     task $ fetch.core/fetch |http://localhost:4000/demo
       {} (:method :POST) (:timeout-ms 30000)
-        :headers $ {} (:a |b)
-        :query $ [] ([] :a |b)
-          [] :c |d
+        :headers $ {} $ :a |b
+        :query $ [] ([] :a |b) ([] :c |d)
         :body "|Some body"
       fn (result)
         match result
@@ -70,7 +69,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用 Calcit `0.15.3`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用 Calcit `0.17.1`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -80,7 +79,7 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to Calcit `0.15.3` for typed `FfiTask` methods, the
+The module is pinned to Calcit `0.17.1` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 `fetch.core/fetch` declares the native async lowering contract consumed by
