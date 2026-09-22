@@ -15,3 +15,5 @@
 /dylibs/
 
 .DS_Store
+
+/js-out/
