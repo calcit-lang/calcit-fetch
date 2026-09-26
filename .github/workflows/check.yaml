@@ -53,7 +53,7 @@ jobs:
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --check-only
-          calcit calcit.cirru analyze dynamic-methods --max 0
+          calcit calcit.cirru analyze dynamic-methods
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
           calcit calcit.cirru docs check-md README.md --entry calcit.cirru --failures-only
           calcit calcit.cirru docs check-md docs/async-fetch.md --entry calcit.cirru --failures-only
