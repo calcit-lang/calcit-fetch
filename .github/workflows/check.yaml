@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
-      - uses: calcit-lang/setup-calcit@704b3f5cd6f9ce3bd1e0c926dbdd1d181adb8180 # v1.4.0
+      - uses: calcit-lang/setup-calcit@ca701be5a471759e442aa053cd100720bbe1f09f # v1.5.0
         with:
           tools: calcit,caps
 
@@ -53,10 +53,10 @@ jobs:
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --check-only
-          calcit calcit.cirru analyze dynamic-methods --max 0
+          calcit calcit.cirru analyze dynamic-methods
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
-          calcit calcit.cirru docs check-md README.md --entry calcit.cirru --failures-only
-          calcit calcit.cirru docs check-md docs/async-fetch.md --entry calcit.cirru --failures-only
+          calcit calcit.cirru docs check-md README.md --snapshot calcit.cirru --failures-only
+          calcit calcit.cirru docs check-md docs/async-fetch.md --snapshot calcit.cirru --failures-only
       - run: bash scripts/check-cancel-ffi.sh
       - run: calcit calcit.cirru --warn-dyn-method --check-only
       - run: calcit calcit.cirru analyze check-types --summary-only --format json
