@@ -47,8 +47,10 @@ Maintainers can run `bash scripts/check-cancel-ffi.sh` after copying the release
 dylib into `dylibs/`; it exercises the public `FfiTask.cancel-with` path against
 a deliberately slow local HTTP server and rejects any stale callback.
 
-Install with `caps --ci` in the consuming project, then compile and provide the
-`*.{dylib,so}` file with `./build.sh`.
+In the consuming project, first declare `calcit-lang/calcit-fetch` with a
+compatible release tag under `deps.cirru :dependencies`. Run `caps --ci` to
+install the declared modules, then compile and provide the `*.{dylib,so}` file
+with `./build.sh` from the installed fetch module directory.
 
 The project uses the canonical `calcit.cirru` snapshot and keeps the Calcit/runtime
 version in `deps.cirru`. Validate the snapshot with `calcit calcit.cirru --check-only`.
