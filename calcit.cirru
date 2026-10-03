@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |fetch
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'fetch.test/main!) (:mode :native) (:reload-fn 'fetch.test/reload!)
+    {} (:description |) (:init-fn 'fetch.test/main!) (:mode :native) (:reload-fn 'fetch.test/reload!) (:target :native)
       :feature-policy $ {}
       :modules $ []
       :type-slots $ {}
@@ -47,7 +47,7 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
         'reload! $ %{} 'CodeEntry (:doc "|Hot reload hook for development.")
-          :code $ quote $ defn reload! ()
+          :code $ quote $ defn reload! () &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []

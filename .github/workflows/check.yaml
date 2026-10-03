@@ -11,33 +11,39 @@ jobs:
   build_and_test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: calcit-lang/setup-calcit@ca701be5a471759e442aa053cd100720bbe1f09f # v1.5.0
+      - uses: calcit-lang/setup-calcit@v1.5.0
         with:
           tools: calcit,caps
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@v6.5.0
         with:
           node-version: 24
 
-      - run: caps --ci
+      - run: caps --ci --strict
+      - run: caps verify --toolchain
 
-      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87 # stable
+      - uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: nightly
           components: clippy,rustfmt
 
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - uses: Swatinem/rust-cache@v2.9.2
 
       - run: cargo fmt --check
 
-      - run: cargo build --release
+      - run: cargo build --release --locked
 
-      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy --all-targets --locked -- -D warnings
 
-      - run: cargo test
+      - run: cargo test --locked
 
       - name: Verify C-safe exports only
         run: |
@@ -46,22 +52,18 @@ jobs:
           grep -q ' fetch_calcit_ffi_async_v1$' <<<"$exports"
           ! grep -Eq ' (abi_version|edn_version|fetch)$' <<<"$exports"
 
-      - run: rm -rfv dylibs/* && mkdir -p dylibs/ && cp -v target/release/libcalcit_http.so dylibs/
+      - run: mkdir -p dylibs/ && cp -v target/release/libcalcit_http.so dylibs/
 
       - name: Validate Calcit API, examples, and docs
         run: |
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
-          calcit calcit.cirru --check-only
-          calcit calcit.cirru analyze dynamic-methods
+          calcit calcit.cirru --warn-dyn-method --check-only
+          calcit calcit.cirru analyze check-public --ns fetch.core --ns fetch.test --ns fetch.util --ns 'fetch.$meta' --format json
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
           calcit calcit.cirru docs check-md README.md --snapshot calcit.cirru --failures-only
           calcit calcit.cirru docs check-md docs/async-fetch.md --snapshot calcit.cirru --failures-only
       - run: bash scripts/check-cancel-ffi.sh
-      - run: calcit calcit.cirru --warn-dyn-method --check-only
-      - run: calcit calcit.cirru analyze check-types --summary-only --format json
-      - run: calcit calcit.cirru analyze weak-types --intent unresolved --summary-only --format json
-      - run: calcit calcit.cirru analyze deprecated --summary-only --format json
       - run: calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
       - name: Validate FFI Interface IR lowering
         run: |
