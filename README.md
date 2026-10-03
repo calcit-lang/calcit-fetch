@@ -47,10 +47,17 @@ Maintainers can run `bash scripts/check-cancel-ffi.sh` after copying the release
 dylib into `dylibs/`; it exercises the public `FfiTask.cancel-with` path against
 a deliberately slow local HTTP server and rejects any stale callback.
 
-Install to `~/.config/calcit/modules/`, compile and provide `*.{dylib,so}` file with `./build.sh`.
+Install with `caps --ci` in the consuming project, then compile and provide the
+`*.{dylib,so}` file with `./build.sh`.
 
 The project uses the canonical `calcit.cirru` snapshot and keeps the Calcit/runtime
 version in `deps.cirru`. Validate the snapshot with `calcit calcit.cirru --check-only`.
+
+CI 使用工具链匹配、全部四个命名空间的公开定义检查及原质量预算，
+并保留 Rust 测试、C-safe 导出、示例、文档和 HTTP 取消集成测试。
+默认入口显式声明 native target；空 reload hook 返回 Unit。
+质量预算中的一个 Dynamic 是现有灵活 HTTP options 边界，不代表类型债务清零。
+正式 Action 标签可移动，只读权限和禁用凭据持久化不保证标签不可变。
 
 ### 共享 FFI 基础层 / Shared FFI foundation
 
@@ -69,7 +76,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用 Calcit `0.17.1`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.28.0`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -79,18 +86,18 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to Calcit `0.17.1` for typed `FfiTask` methods, the
+The module is pinned to released Calcit `0.28.0` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 `fetch.core/fetch` declares the native async lowering contract consumed by
 `calcit ffi export`: `async-request` invocation over `async-task-v1`. Options,
 the callback, and the host-managed `FfiTask` remain a deliberate handwritten
-adapter boundary in Interface IR v2. CI guards all three exact diagnostic paths
+adapter boundary in Interface IR v3. CI guards all three exact diagnostic paths
 so a future generator cannot silently erase one of these capabilities.
 
 `fetch.core/fetch` 已声明供 `calcit ffi export` 使用的 native async lowering
 合同，即通过 `async-task-v1` 承载 `async-request`。options、callback 与宿主
-管理的 `FfiTask` 在 Interface IR v2 中仍是有意保留的手写 adapter 边界；CI
+管理的 `FfiTask` 在 Interface IR v3 中仍是有意保留的手写 adapter 边界；CI
 固定检查三个精确诊断路径，防止后续 generator 静默抹除这些 capability。
 
 ### Workflow

@@ -55,7 +55,7 @@ The raw `fetch` definition publishes complete native async lowering metadata:
 host-managed `FfiTask`. Run `calcit calcit.cirru ffi export --json` to inspect
 the versioned contract.
 
-Interface IR v2 does not generate callback parameters, the flexible options
+Interface IR v3 does not generate callback parameters, the flexible options
 value, or the host-managed `FfiTask`. It reports deterministic diagnostics at
 the two parameter paths and the result path, and leaves validation,
 cancellation, and callback delivery in this module. The lowering metadata is
