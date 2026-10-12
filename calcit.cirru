@@ -77,7 +77,7 @@
         'get-dylib-ext $ %{} 'CodeEntry
           :doc "|Resolves platform-specific dylib extension for the current OS."
           :code $ quote $ defmacro get-dylib-ext ()
-            case-default (&get-os) |.so (:macos |.dylib) (:windows |.dll)
+            match (&get-os) (:macos |.dylib) (:windows |.dll) (_ |.so)
           :examples $ []
           :schema $ :: 'Macro $ {}
             :capabilities $ #{} :platform-read

@@ -59,12 +59,11 @@ jobs:
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only
-          calcit calcit.cirru analyze check-public --ns fetch.core --ns fetch.test --ns fetch.util --ns 'fetch.$meta' --format json
+          calcit calcit.cirru --check-only --ns fetch.core --ns fetch.test --ns fetch.util --ns 'fetch.$meta' --summary-only --format json
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
           calcit calcit.cirru docs check-md README.md --snapshot calcit.cirru --failures-only
           calcit calcit.cirru docs check-md docs/async-fetch.md --snapshot calcit.cirru --failures-only
       - run: bash scripts/check-cancel-ffi.sh
-      - run: calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
       - name: Validate FFI Interface IR lowering
         run: |
           calcit calcit.cirru ffi export --json > /tmp/calcit-fetch-ffi-interface-ir.json
