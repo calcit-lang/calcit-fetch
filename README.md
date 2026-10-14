@@ -28,7 +28,7 @@ let
         match result
           (:ok text) (println text)
           (:err message) (eprintln message)
-  task.cancel-with :superseded
+  task.cancel-with! :superseded
 ```
 
 Supported option keys:
@@ -39,12 +39,12 @@ Supported option keys:
 - `:body` - request body string
 - `:timeout-ms` - total request timeout from 1 to 300000 milliseconds; default 30000
 
-Keep the returned `FfiTask` while the request is relevant. `.cancel` or
-`.cancel-with` interrupts the active network future, suppresses stale callback
+Keep the returned `FfiTask` while the request is relevant. `.cancel!` or
+`.cancel-with!` interrupts the active network future, suppresses stale callback
 delivery, and completes the task once native cleanup finishes.
 
 Maintainers can run `bash scripts/check-cancel-ffi.sh` after copying the release
-dylib into `dylibs/`; it exercises the public `FfiTask.cancel-with` path against
+dylib into `dylibs/`; it exercises the public `FfiTask.cancel-with!` path against
 a deliberately slow local HTTP server and rejects any stale callback.
 
 In the consuming project, first declare `calcit-lang/calcit-fetch` with a
@@ -78,7 +78,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.29.0`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.29.3`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -88,7 +88,7 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to released Calcit `0.29.0` for typed `FfiTask` methods, the
+The module is pinned to released Calcit `0.29.3` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 `fetch.core/fetch` declares the native async lowering contract consumed by

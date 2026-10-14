@@ -52,7 +52,7 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
         'run-tests $ %{} 'CodeEntry
-          :doc "|Prints module info and demonstrates an async GET request."
+          :doc "|Prints module info; the historical HTTP request example remains commented out."
           :code $ quote $ defn run-tests () (println "|%%%% test for lib") (println calcit-filename calcit-dirname)
             ; fetch |http://localhost:4000/demo
               {} (:method :POST)
@@ -64,6 +64,7 @@
                   (:ok text) (println text)
                   (:err e) (println |Err e)
             println "|sent request"
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
