@@ -23,12 +23,12 @@ entry_for:
 ```cirru.no-check
 let
     task $ fetch.core/fetch |https://calcit-lang.org
-      {} (:timeout-ms 30000)
+      {} $ :timeout-ms 30000
       fn (result)
         match result
           (:ok text) (println text)
           (:err message) (eprintln message)
-  task.cancel-with :superseded
+  task.cancel-with! :superseded
 ```
 
 Options support method, headers, query pairs, body, and bounded timeout. Validate or encode application structures before crossing this boundary.
@@ -37,7 +37,7 @@ Options support method, headers, query pairs, body, and bounded timeout. Validat
 
 Result and terminal events use bounded host-queue delivery. A saturated queue becomes one explicit failure terminal after a bounded deadline rather than retaining a worker forever.
 
-The request runs as an async `reqwest` future selected against the task's registered cancellation signal. `.cancel` / `.cancel-with` drops the active network future, suppresses stale result delivery, and then acknowledges cleanup with one terminal event. `:timeout-ms` defaults to 30000 and accepts bounded integer values from 1 through 300000.
+The request runs as an async `reqwest` future selected against the task's registered cancellation signal. `.cancel!` / `.cancel-with!` drops the active network future, suppresses stale result delivery, and then acknowledges cleanup with one terminal event. `:timeout-ms` defaults to 30000 and accepts bounded integer values from 1 through 300000.
 
 ## Application guidance
 
@@ -52,7 +52,7 @@ The request runs as an async `reqwest` future selected against the task's regist
 
 The raw `fetch` definition publishes complete native async lowering metadata:
 `async-request` invocation uses the `async-task-v1` transport and returns the
-host-managed `FfiTask`. Run `calcit calcit.cirru ffi export --json` to inspect
+host-managed `FfiTask`. Run `calcit calcit.cirru ffi export --format json` to inspect
 the versioned contract.
 
 Interface IR v3 does not generate callback parameters, the flexible options

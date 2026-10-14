@@ -50,7 +50,7 @@ let
       {} (:timeout-ms 5000)
       fn (result)
         eprintln |unexpected-fetch-result result
-  task.cancel-with :ffi-smoke-cancel
+  task.cancel-with! :ffi-smoke-cancel
   , task' >"$calcit_log" 2>&1
 
 if grep -q 'unexpected-fetch-result' "$calcit_log"; then
