@@ -11,7 +11,7 @@
     'fetch.core $ %{} 'FileEntry
       :defs $ {} $ 'fetch
         %{} 'CodeEntry
-          :doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel or .cancel-with to interrupt the network request and suppress stale callback delivery."
+          :doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel! or .cancel-with! to interrupt the network request and suppress stale callback delivery."
           :code $ quote $ defn fetch (url options cb)
             ffi:task $ &call-dylib-edn-fn (get-dylib-path |/dylibs/libcalcit_http) |fetch url options cb
           :examples $ []
@@ -28,7 +28,7 @@
                     match result
                       (:ok text) (println text)
                       (:err message) (eprintln message)
-              task.cancel-with :superseded
+              task.cancel-with! :superseded
           :ffi $ {} (:backend :native) (:invoke :async) (:kind :async-request) (:symbol |fetch) (:transport :async-task-v1)
           :schema $ :: 'Fn $ {} (:return 'FfiTask)
             :args $ [] 'String 'Dynamic $ :: 'Fn
