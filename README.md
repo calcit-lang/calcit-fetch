@@ -78,7 +78,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.29.3`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.30.0`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -88,8 +88,13 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to released Calcit `0.29.3` for typed `FfiTask` methods, the
+The module is pinned to released Calcit `0.30.0` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
+
+本轮只更新工具链、CI 版本来源和说明；Snapshot、Rust、Cargo 依赖/lock、模块
+0.0.29、Result payload、async ABI v1 与取消行为不变，不发版或部署。
+CI 复用完整 strict 和原有验证入口，不新增脚本、框架、类型预算或编译器规则。
+0.30.1 尚无正式版，不引入 alpha/hash；仍明确保留三个手写 FFI adapter 边界。
 
 `fetch.core/fetch` declares the native async lowering contract consumed by
 `calcit ffi export`: `async-request` invocation over `async-task-v1`. Options,
