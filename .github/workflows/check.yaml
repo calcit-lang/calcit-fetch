@@ -22,6 +22,7 @@ jobs:
       - uses: calcit-lang/setup-calcit@v1.5.0
         with:
           tools: calcit,caps
+          deps-file: deps.cirru
 
       - uses: actions/setup-node@v6.5.0
         with:
@@ -59,6 +60,7 @@ jobs:
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only
+          calcit calcit.cirru fix --workflow strict --verify --format json
           calcit calcit.cirru --check-only --ns fetch.core --ns fetch.test --ns fetch.util --ns 'fetch.$meta' --summary-only --format json
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
           calcit calcit.cirru docs check-md README.md --snapshot calcit.cirru --failures-only
