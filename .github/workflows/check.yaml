@@ -57,11 +57,12 @@ jobs:
 
       - name: Validate Calcit API, examples, and docs
         run: |
+          set -euo pipefail
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --warn-dyn-method --check-only
           calcit calcit.cirru --check-only --all-defs
-          calcit calcit.cirru fix --workflow strict --verify --format json
+          calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
           calcit calcit.cirru --check-only --ns fetch.core --ns fetch.test --ns fetch.util --ns 'fetch.$meta' --summary-only --format json
           calcit calcit.cirru analyze check-examples --ns fetch.core --def fetch
           calcit calcit.cirru docs check-md README.md --snapshot calcit.cirru --failures-only
