@@ -2,17 +2,16 @@
 
 > Fetch client for Calcit
 
-### 正式 0.30.1 配对：使用者影响
+### 正式 0.31.0 配对：使用者影响
 
-候选模块 **0.0.30** 要求正式 **Calcit 0.30.1**；下游同步 deps.cirru 的精确工具链要求并
+候选模块 **0.0.31** 要求正式 **Calcit 0.31.0**；下游同步 deps.cirru 的精确工具链要求并
 保留 Caps strict。仅支持 native，没有 npm runtime / JS/WASM 配对或前端资源，不增加
 COS/CDN，也不部署业务应用。候选号不等于已经发布。
 
-与当前 main 相比，本次不改 Snapshot、Rust、Cargo 依赖/lock、Result payload、async ABI v1
-或取消行为。与已发布 **0.0.29** 相比，发布还包含此前已合并的 Fetch 文档和示例取消方法
-`.cancel` / `.cancel-with` → `.cancel!` / `.cancel-with!`；业务函数和 Rust 实现相同。
+与已发布 **0.0.30** 相比，本次不改 Snapshot、Rust、Cargo 依赖/lock、Result payload、
+async ABI v1 或取消行为；消费者应使用锁定 Cargo 依赖重建本机架构动态库。
 原有灵活 options、callback 和宿主管理 FfiTask 仍是明确的手写 adapter 边界，不声称 bindgen
-已支持或类型债务清零。本次只更新正式声明、说明，并使现有 strict gate 明确断言通过。
+已支持或类型债务清零。本次只更新正式声明与说明，原 strict gate 和全部 CI 保持。
 Cargo crate 保持0.0.29，不发布 crates.io 包。
 
 Native requests are executed asynchronously through the fetch dylib. The public API returns a typed `FfiTask` and calls the callback with either `(:: :ok text)` or `(:: :err message)`.
@@ -91,7 +90,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.30.1`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.31.0`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -101,12 +100,12 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to formal Calcit `0.30.1` for typed `FfiTask` methods, the
+The module is pinned to formal Calcit `0.31.0` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 CI 复用完整 strict 和原有验证入口，不新增脚本、框架、类型预算或编译器规则。
-原匹配 alpha.5 环境下，9个定义、完整 strict、Rust 7项测试、原取消集成、2个定义示例与文档
-检查通过。正式0.30.1 以本次精确提交的 Linux CI 为准，不将本地 alpha 结果冒充正式验证。
+正式 0.31.0 配对保留 9 个定义、完整 strict、Rust 7 项测试、原取消集成、2 个定义示例
+与文档检查，验收以本次精确提交的 Linux CI 为准。
 既有 C-safe 符号和三个精确 FFI IR 诊断路径门禁保留，不以放宽边界换取通过。
 
 `fetch.core/fetch` declares the native async lowering contract consumed by
