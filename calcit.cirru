@@ -30,10 +30,9 @@
                       (:err message) (eprintln message)
               task.cancel-with! :superseded
           :ffi $ {} (:backend :native) (:invoke :async) (:kind :async-request) (:symbol |fetch) (:transport :async-task-v1)
-          :schema $ :: 'Fn $ {} (:return 'FfiTask)
-            :args $ [] 'String 'Dynamic $ :: 'Fn
-              {} (:return 'Unit)
-                :args $ [] $ :: 'Result 'String 'String
+          :schema $ quote $ Fn String Dynamic
+            Fn (Result String String) (-> Unit)
+            -> FfiTask
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns fetch.core
           :require
@@ -44,13 +43,11 @@
         'main! $ %{} 'CodeEntry (:doc "|Runs fetch module demo cases.")
           :code $ quote $ defn main! () (run-tests)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'reload! $ %{} 'CodeEntry (:doc "|Hot reload hook for development.")
           :code $ quote $ defn reload! () &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
         'run-tests $ %{} 'CodeEntry
           :doc "|Prints module info; the historical HTTP request example remains commented out."
           :code $ quote $ defn run-tests () (println "|%%%% test for lib") (println calcit-filename calcit-dirname)
@@ -66,8 +63,7 @@
             println "|sent request"
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
+          :schema $ quote $ Fn (-> Unit)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns fetch.test
           :require
@@ -80,24 +76,21 @@
           :code $ quote $ defmacro get-dylib-ext ()
             match (&get-os) (:macos |.dylib) (:windows |.dll) (_ |.so)
           :examples $ []
-          :schema $ :: 'Macro $ {}
-            :capabilities $ #{} :platform-read
-            :expansion $ :: 'Expr 'String
-            :required $ []
+          :schema $ quote $ Macro
+            -> $ Expr String
+            :capabilities :platform-read
         'get-dylib-path $ %{} 'CodeEntry
           :doc "|Builds a dylib path relative to current module directory."
           :code $ quote $ defn get-dylib-path (p)
             str (or-current-path calcit-dirname) p $ get-dylib-ext
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
         'or-current-path $ %{} 'CodeEntry
           :doc "|Normalizes blank directory path to current directory marker."
           :code $ quote $ defn or-current-path (p)
             if (blank? p) |. p
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns fetch.util
           :require $ fetch.$meta :refer $ calcit-dirname
