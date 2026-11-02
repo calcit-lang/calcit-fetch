@@ -2,9 +2,9 @@
 
 > Fetch client for Calcit
 
-### 正式 0.34.0 配对：使用者影响
+### 正式 0.34.2 配对：使用者影响
 
-候选模块 **0.0.33** 要求正式 **Calcit 0.34.0**；下游同步 deps.cirru 的精确工具链要求并
+候选模块 **0.0.34** 要求正式 **Calcit 0.34.2**；下游同步 deps.cirru 的精确工具链要求并
 保留 Caps strict。仅支持 native，没有 npm runtime / JS/WASM 配对或前端资源，不增加
 COS/CDN，也不部署业务应用。候选号不等于已经发布。
 
@@ -15,7 +15,7 @@ async ABI v1 与取消行为保持；消费者应使用锁定 Cargo 依赖重建
 options 允许缺省值和开放 Map，由 Rust 检查字段；这不是几个闭合类型的选择，本次不为减少 Dynamic 计数而改变接受合同。
 Cargo crate 保持0.0.29，不发布 crates.io 包。
 
-Calcit 0.34.0 的 native `identical?` 对容器采用身份比较；需要结构值比较的下游应使用 `=`。
+Calcit 0.34.2 的 native `identical?` 对容器采用身份比较；需要结构值比较的下游应使用 `=`。
 本模块的验收不替代消费者的语义检查。
 
 Native requests are executed asynchronously through the fetch dylib. The public API returns a typed `FfiTask` and calls the callback with either `(:: :ok text)` or `(:: :err message)`.
@@ -94,7 +94,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.34.0`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.34.2`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -104,11 +104,11 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to formal Calcit `0.34.0` for typed `FfiTask` methods, the
+The module is pinned to formal Calcit `0.34.2` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 CI 复用完整 strict 和原有验证入口，不新增脚本、框架、类型预算或编译器规则。
-正式 0.34.0 配对保留 9 个定义、完整 strict、Rust 7 项测试、原取消集成、2 个定义示例
+正式 0.34.2 配对保留 9 个定义、完整 strict、Rust 7 项测试、原取消集成、2 个定义示例
 与文档检查，验收以本次精确提交的 Linux CI 为准。
 既有 C-safe 符号和三个精确 FFI IR 诊断路径门禁保留，不以放宽边界换取通过。
 
