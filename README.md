@@ -6,7 +6,7 @@
 
 候选模块 **0.0.35** 使用正式 Calcit **0.35.1**。请同步 `deps.cirru` 的工具链声明，并用锁定的 Cargo 依赖重建本机动态库。
 
-请求选项仍接受 `nil` 或 Map，字段由 Rust 校验。回调继续接收 `Result<String, String>`，任务句柄支持 `.cancel!` 和 `.cancel-with!`。该接口使用手写 native FFI 适配器，自动绑定仍受开放选项、回调和宿主管理任务三类边界限制。
+请求选项仍接受 `nil` 或 Map。Rust 校验方法、请求头、查询参数和超时。缺省的 `:body` 发送空字符串，其他非字符串值按 EDN 文本转换。回调继续接收 `Result<String, String>`，任务句柄支持 `.cancel!` 和 `.cancel-with!`。该接口使用手写 native FFI 适配器，自动绑定仍受开放选项、回调和宿主管理任务三类边界限制。
 
 Native requests are executed asynchronously through the fetch dylib. The public API returns a typed `FfiTask` and calls the callback with either `(:: :ok text)` or `(:: :err message)`.
 
@@ -42,7 +42,7 @@ Supported option keys:
 - `:method` - request method tag such as `:GET`, `:POST`, `:PUT`, `:PATCH`, `:DELETE`
 - `:headers` - map from string/tag keys to string values
 - `:query` - list of `[key value]` pairs, with key as string or tag and value as string
-- `:body` - request body string
+- `:body` - request body string, defaulting to empty. Non-string values are converted to their EDN display text.
 - `:timeout-ms` - total request timeout from 1 to 300000 milliseconds; default 30000
 
 Keep the returned `FfiTask` while the request is relevant. `.cancel!` or
