@@ -4,9 +4,9 @@
 
 ### 使用者影响
 
-候选模块 **0.0.35** 使用正式 Calcit **0.35.1**。请同步 `deps.cirru` 的工具链声明，并用锁定的 Cargo 依赖重建本机动态库。
+候选模块 **0.0.35** 使用正式 Calcit **0.37.0**。请同步 `deps.cirru` 的工具链声明，并用锁定的 Cargo 依赖重建本机动态库。
 
-请求选项仍接受 `nil` 或 Map。Rust 校验方法、请求头、查询参数和超时。缺省的 `:body` 发送空字符串，其他非字符串值按 EDN 文本转换。回调继续接收 `Result<String, String>`，任务句柄支持 `.cancel!` 和 `.cancel-with!`。该接口使用手写 native FFI 适配器，自动绑定仍受开放选项、回调和宿主管理任务三类边界限制。
+新调用可以用 `fetch-request` 和 `default-options` 静态检查请求选项。原 `fetch` 继续接受 `nil` 或 Map。Rust 校验方法、请求头、查询参数和超时。缺省的 `:body` 发送空字符串，其他非字符串值按 EDN 文本转换。回调继续接收 `Result<String, String>`，任务句柄支持 `.cancel!` 和 `.cancel-with!`。该接口使用手写 native FFI 适配器，自动绑定仍受开放选项、回调和宿主管理任务三类边界限制。
 
 Native requests are executed asynchronously through the fetch dylib. The public API returns a typed `FfiTask` and calls the callback with either `(:: :ok text)` or `(:: :err message)`.
 
@@ -25,10 +25,13 @@ Demo of options:
 
 ```cirru.no-run
 let
-    task $ fetch.core/fetch |http://localhost:4000/demo
-      {} (:method :POST) (:timeout-ms 30000)
-        :headers $ {} $ :a |b
-        :query $ [] ([] :a |b) ([] :c |d)
+    task $ fetch.core/fetch-request |http://localhost:4000/demo
+      struct-with fetch.core/default-options
+        :method $ fetch.core/RequestMethod :post
+        :headers $ {} (:a |b) (|x-example |typed)
+        :query $ []
+          fetch.core/QueryParam :key :a :value |b
+          fetch.core/QueryParam :key |c :value |d
         :body "|Some body"
       fn (result)
         match result
@@ -37,7 +40,9 @@ let
   task.cancel-with! :superseded
 ```
 
-Supported option keys:
+The typed entry accepts the five supported methods, String or Tag keys, String values, and a String body. Use `struct-with` on `default-options` to override only the fields you need.
+
+Supported option keys on the original entry:
 
 - `:method` - request method tag such as `:GET`, `:POST`, `:PUT`, `:PATCH`, `:DELETE`
 - `:headers` - map from string/tag keys to string values
@@ -64,7 +69,7 @@ version in `deps.cirru`. Validate the snapshot with `calcit calcit.cirru --check
 CI 使用工具链匹配和全部四个命名空间的严格公开定义检查，
 并保留 Rust 测试、C-safe 导出、示例、文档和 HTTP 取消集成测试。
 默认入口显式声明 native target；空 reload hook 返回 Unit。
-HTTP options 的 Dynamic 是现有灵活原生 FFI 输入边界，由 Rust 校验；不代表类型债务清零。
+原生 `fetch` 保留开放 EDN 输入并交由 Rust 校验；`fetch-request` 使用具名请求类型。
 正式 Action 标签可移动，只读权限和禁用凭据持久化不保证标签不可变。
 
 ### 共享 FFI 基础层 / Shared FFI foundation
@@ -84,7 +89,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.35.1`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.37.0`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -94,12 +99,11 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to formal Calcit `0.35.1` for typed `FfiTask` methods, the
+The module is pinned to formal Calcit `0.37.0` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 CI 复用完整 strict 和原有验证入口，不新增脚本、框架、类型预算或编译器规则。
-正式 0.35.1 配对保留 9 个定义、完整 strict、Rust 7 项测试、原取消集成、2 个定义示例
-与文档检查，验收以本次精确提交的 Linux CI 为准。
+CI 检查完整 strict、Rust 测试、原取消集成、原定义示例和文档。
 既有 C-safe 符号和三个精确 FFI IR 诊断路径门禁保留，不以放宽边界换取通过。
 
 `fetch.core/fetch` declares the native async lowering contract consumed by
