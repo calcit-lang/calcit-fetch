@@ -19,7 +19,20 @@ trap cleanup EXIT
 
 "$node_bin" -e '
   const http = require("node:http");
-  const server = http.createServer((_request, response) => {
+  const server = http.createServer((request, response) => {
+    if (request.url.startsWith("/typed")) {
+      let body = "";
+      request.setEncoding("utf8");
+      request.on("data", (chunk) => { body += chunk; });
+      request.on("end", () => {
+        const matches = request.method === "POST"
+          && request.url === "/typed?name=calcit"
+          && request.headers["x-typed"] === "yes"
+          && body === "sample";
+        response.end(matches ? "typed-request-ok" : "typed-request-mismatch");
+      });
+      return;
+    }
     setTimeout(() => {
       response.writeHead(200, { "content-type": "text/plain" });
       response.end("late");
@@ -43,11 +56,25 @@ if ! grep -q '^ready$' "$server_log"; then
 fi
 
 calcit calcit.cirru eval --dep ./ -- 'ns app.main $ :require
-  fetch.core :refer $ fetch
+  fetch.core :refer $ fetch-request default-options RequestMethod QueryParam
+
+fetch-request |http://127.0.0.1:18082/typed
+  struct-with default-options
+    :method $ RequestMethod :post
+    :headers $ {} (:x-typed |yes)
+    :query $ [] $ QueryParam :key |name :value |calcit
+    :body |sample
+  fn (result)
+    match result
+      (:ok text) (assert= |typed-request-ok text)
+      (:err error) (raise error)'
+
+calcit calcit.cirru eval --dep ./ -- 'ns app.main $ :require
+  fetch.core :refer $ fetch-request default-options
 
 let
-    task $ fetch |http://127.0.0.1:18082/slow
-      {} (:timeout-ms 5000)
+    task $ fetch-request |http://127.0.0.1:18082/slow
+      struct-with default-options $ :timeout-ms 5000
       fn (result)
         eprintln |unexpected-fetch-result result
   task.cancel-with! :ffi-smoke-cancel

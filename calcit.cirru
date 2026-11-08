@@ -9,8 +9,33 @@
       :type-slots $ {}
   :files $ {}
     'fetch.core $ %{} 'FileEntry
-      :defs $ {} $ 'fetch
-        %{} 'CodeEntry
+      :defs $ {}
+        'QueryParam $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct QueryParam (:key fetch.core/RequestKey) (:value String)
+          :examples $ []
+          :schema $ quote StructDef
+        'RequestKey $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion RequestKey String Tag
+          :examples $ []
+          :schema $ quote UnionDef
+        'RequestMethod $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum RequestMethod (:get) (:post) (:put) (:patch) (:delete)
+          :examples $ []
+          :schema $ quote EnumDef
+        'RequestOptions $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defstruct RequestOptions (:method fetch.core/RequestMethod)
+            :headers $ Map fetch.core/RequestKey String
+            :query $ List fetch.core/QueryParam
+            :body String
+            :timeout-ms Number
+          :examples $ []
+          :schema $ quote StructDef
+        'default-options $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ def default-options
+            RequestOptions :method (RequestMethod :get) :headers ({}) :query ([]) :body | :timeout-ms 30000
+          :examples $ []
+          :schema $ quote fetch.core/RequestOptions
+        'fetch $ %{} 'CodeEntry
           :doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel! or .cancel-with! to interrupt the network request and suppress stale callback delivery."
           :code $ quote $ defn fetch (url options cb)
             ffi:task $ &call-dylib-edn-fn (get-dylib-path |/dylibs/libcalcit_http) |fetch url options cb
@@ -31,6 +56,29 @@
               task.cancel-with! :superseded
           :ffi $ {} (:backend :native) (:invoke :async) (:kind :async-request) (:symbol |fetch) (:transport :async-task-v1)
           :schema $ quote $ Fn String Dynamic
+            Fn (Result String String) (-> Unit)
+            -> FfiTask
+            :open :decode
+        'fetch-request $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn fetch-request (url options cb)
+            fetch url
+              {}
+                :method $ match (:method options)
+                  (:get) :GET
+                  (:post) :POST
+                  (:put) :PUT
+                  (:patch) :PATCH
+                  (:delete) :DELETE
+                :headers $ :headers options
+                :query $ map (:query options)
+                  fn (param)
+                    hint-fn $ Fn fetch.core/QueryParam $ -> (List fetch.core/RequestKey)
+                    [] (:key param) (:value param)
+                :body $ :body options
+                :timeout-ms $ :timeout-ms options
+              , cb
+          :examples $ []
+          :schema $ quote $ Fn String fetch.core/RequestOptions
             Fn (Result String String) (-> Unit)
             -> FfiTask
       :ns $ %{} 'NsEntry (:doc |)
