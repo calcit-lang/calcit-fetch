@@ -12,18 +12,19 @@ aliases:
   - "request cancellation"
   - "fetch callback"
 entry_for:
+  - "fetch.core/fetch-request"
   - "fetch.core/fetch"
   - "Result Ok Err"
 ---
 
 # Asynchronous native Fetch
 
-`fetch.core/fetch` performs a native HTTP request, returns a typed `FfiTask`, and invokes a callback with `Result<String, String>`. Use native `match` so success and failure stay explicit and statically visible.
+`fetch.core/fetch-request` performs a native HTTP request with named `RequestOptions`, returns a typed `FfiTask`, and invokes a callback with `Result<String, String>`. Use native `match` to handle both result variants.
 
-```cirru.no-check
+```cirru.no-run
 let
-    task $ fetch.core/fetch |https://calcit-lang.org
-      {} $ :timeout-ms 30000
+    task $ fetch.core/fetch-request |https://calcit-lang.org
+      struct-with fetch.core/default-options $ :timeout-ms 30000
       fn (result)
         match result
           (:ok text) (println text)
@@ -31,7 +32,7 @@ let
   task.cancel-with! :superseded
 ```
 
-Options support method, headers, query pairs, body, and bounded timeout. Validate or encode application structures before crossing this boundary.
+Keep the task while the request is relevant and call the cancellation shown here when a newer request supersedes it. The original `fetch.core/fetch` accepts legacy nil or map options and reports invalid options through the callback. Options support method, headers, query pairs, body, and bounded timeout.
 
 ## Lifecycle and backpressure
 
