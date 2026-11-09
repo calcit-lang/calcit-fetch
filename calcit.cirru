@@ -72,7 +72,6 @@
                 :headers $ :headers options
                 :query $ map (:query options)
                   fn (param)
-                    hint-fn $ Fn fetch.core/QueryParam $ -> (List fetch.core/RequestKey)
                     [] (:key param) (:value param)
                 :body $ :body options
                 :timeout-ms $ :timeout-ms options
