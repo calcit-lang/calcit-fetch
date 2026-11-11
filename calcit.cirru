@@ -34,7 +34,7 @@
           :code $ quote $ def default-options
             RequestOptions :method (RequestMethod :get) :headers ({}) :query ([]) :body | :timeout-ms 30000
           :examples $ []
-          :schema $ quote fetch.core/RequestOptions
+          :schema $ quote RequestOptions
         'fetch $ %{} 'CodeEntry
           :doc "|Starts one cancellable native HTTP request. Params: url, options (nil or a map with method, headers, query, body, and :timeout-ms from 1 to 300000), callback receiving Result<String, String>. Returns FfiTask; use .cancel! or .cancel-with! to interrupt the network request and suppress stale callback delivery."
           :code $ quote $ defn fetch (url options cb)
@@ -77,7 +77,7 @@
                 :timeout-ms $ :timeout-ms options
               , cb
           :examples $ []
-          :schema $ quote $ Fn String fetch.core/RequestOptions
+          :schema $ quote $ Fn String RequestOptions
             Fn (Result String String) (-> Unit)
             -> FfiTask
       :ns $ %{} 'NsEntry (:doc |)
