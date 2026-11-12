@@ -30,6 +30,11 @@
             :timeout-ms Number
           :examples $ []
           :schema $ quote StructDef
+        'RequestWireValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion RequestWireValue Tag String Number (Map fetch.core/RequestKey String)
+            List $ Tuple fetch.core/RequestKey String
+          :examples $ []
+          :schema $ quote UnionDef
         'default-options $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def default-options
             RequestOptions :method (RequestMethod :get) :headers ({}) :query ([]) :body | :timeout-ms 30000
@@ -61,25 +66,30 @@
             :open :decode
         'fetch-request $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn fetch-request (url options cb)
-            fetch url
-              {}
-                :method $ match (:method options)
-                  (:get) :GET
-                  (:post) :POST
-                  (:put) :PUT
-                  (:patch) :PATCH
-                  (:delete) :DELETE
-                :headers $ :headers options
-                :query $ map (:query options)
-                  fn (param)
-                    [] (:key param) (:value param)
-                :body $ :body options
-                :timeout-ms $ :timeout-ms options
-              , cb
+            fetch url (request-options->wire options) cb
           :examples $ []
           :schema $ quote $ Fn String RequestOptions
             Fn (Result String String) (-> Unit)
             -> FfiTask
+        'request-options->wire $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn request-options->wire (options)
+            {}
+              :method $ match (:method options)
+                (:get) :GET
+                (:post) :POST
+                (:put) :PUT
+                (:patch) :PATCH
+                (:delete) :DELETE
+              :headers $ :headers options
+              :query $ .map (:query options)
+                fn (param)
+                  hint-fn $ Fn QueryParam $ -> (Tuple RequestKey String)
+                  [] (:key param) (:value param)
+              :body $ :body options
+              :timeout-ms $ :timeout-ms options
+          :examples $ []
+          :schema $ quote $ Fn RequestOptions
+            -> $ Map Tag RequestWireValue
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns fetch.core
           :require
@@ -90,7 +100,7 @@
         'main! $ %{} 'CodeEntry (:doc "|Runs fetch module demo cases.")
           :code $ quote $ defn main! () (run-tests)
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io)
         'reload! $ %{} 'CodeEntry (:doc "|Hot reload hook for development.")
           :code $ quote $ defn reload! () &unit
           :examples $ []
@@ -110,7 +120,7 @@
             println "|sent request"
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns fetch.test
           :require
