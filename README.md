@@ -4,7 +4,7 @@
 
 ### 使用者影响
 
-候选模块 **0.0.36** 使用正式 Calcit **0.45.0**。请同步 `deps.cirru` 的工具链声明，并用锁定的 Cargo 依赖重建本机动态库。
+候选模块 **0.0.37** 使用正式 Calcit **0.45.1**。请同步 `deps.cirru` 的工具链声明，并用锁定的 Cargo 依赖重建本机动态库。
 
 新调用可以用 `fetch-request` 和 `default-options` 静态检查请求选项。`fetch-request` 转成原生请求 Map 时用 `RequestWireValue` 检查各字段，查询参数仍按原顺序发送。原 `fetch` 继续接受 `nil` 或 Map。Rust 校验方法、请求头、查询参数和超时。缺省的 `:body` 发送空字符串，其他非字符串值按 EDN 文本转换。回调继续接收 `Result<String, String>`，任务句柄支持 `.cancel!` 和 `.cancel-with!`。该接口使用手写 native FFI 适配器，自动绑定仍受开放选项、回调和宿主管理任务三类边界限制。
 
@@ -89,7 +89,7 @@ owned by this repository.
 执行 `select`；取消会 drop 请求 future、跳过陈旧 callback，再发送唯一 terminal。
 `:timeout-ms` 默认 30 秒、最大 5 分钟，为未主动取消的请求提供有界退出。
 
-模块当前固定使用正式 Calcit `0.45.0`，以提供 typed `FfiTask` 方法、当前
+模块当前固定使用正式 Calcit `0.45.1`，以提供 typed `FfiTask` 方法、当前
 async lifecycle 语义与 versioned FFI Interface IR。
 
 Result `emit` and terminal publication wait at most five seconds when the host
@@ -99,7 +99,7 @@ cancel signal. Cancellation drops the request future, suppresses stale callback
 delivery, and then publishes one terminal event. `:timeout-ms` defaults to 30
 seconds and is capped at five minutes for requests that are not cancelled.
 
-The module is pinned to formal Calcit `0.45.0` for typed `FfiTask` methods, the
+The module is pinned to formal Calcit `0.45.1` for typed `FfiTask` methods, the
 current async lifecycle semantics, and versioned FFI Interface IR.
 
 CI 复用完整 strict 和原有验证入口，不新增脚本、框架、类型预算或编译器规则。
@@ -109,12 +109,12 @@ CI 检查完整 strict、Rust 测试、原取消集成、原定义示例和文�
 `fetch.core/fetch` declares the native async lowering contract consumed by
 `calcit ffi export`: `async-request` invocation over `async-task-v1`. Options,
 the callback, and the host-managed `FfiTask` remain a deliberate handwritten
-adapter boundary in Interface IR v3. CI guards all three exact diagnostic paths
+adapter boundary in Interface IR v4. CI guards all three exact diagnostic paths
 so a future generator cannot silently erase one of these capabilities.
 
 `fetch.core/fetch` 已声明供 `calcit ffi export` 使用的 native async lowering
 合同，即通过 `async-task-v1` 承载 `async-request`。options、callback 与宿主
-管理的 `FfiTask` 在 Interface IR v3 中仍是有意保留的手写 adapter 边界；CI
+管理的 `FfiTask` 在 Interface IR v4 中仍是有意保留的手写 adapter 边界；CI
 固定检查三个精确诊断路径，防止后续 generator 静默抹除这些 capability。
 
 ### Workflow
