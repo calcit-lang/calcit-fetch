@@ -109,12 +109,12 @@ CI 检查完整 strict、Rust 测试、原取消集成、原定义示例和文�
 `fetch.core/fetch` declares the native async lowering contract consumed by
 `calcit ffi export`: `async-request` invocation over `async-task-v1`. Options,
 the callback, and the host-managed `FfiTask` remain a deliberate handwritten
-adapter boundary in Interface IR v3. CI guards all three exact diagnostic paths
+adapter boundary in Interface IR v4. CI guards all three exact diagnostic paths
 so a future generator cannot silently erase one of these capabilities.
 
 `fetch.core/fetch` 已声明供 `calcit ffi export` 使用的 native async lowering
 合同，即通过 `async-task-v1` 承载 `async-request`。options、callback 与宿主
-管理的 `FfiTask` 在 Interface IR v3 中仍是有意保留的手写 adapter 边界；CI
+管理的 `FfiTask` 在 Interface IR v4 中仍是有意保留的手写 adapter 边界；CI
 固定检查三个精确诊断路径，防止后续 generator 静默抹除这些 capability。
 
 ### Workflow
